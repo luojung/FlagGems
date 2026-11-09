@@ -176,84 +176,8 @@ def _rank_one_output(a, b, bias=None, alpha=1.0, beta=0.0):
 
 
 def _install_mm(torch, flag_gems):
-    original = flag_gems.mm
-
-    def mm(a, b):
-        if (
-            a.ndim != 2
-            or b.ndim != 2
-            or a.shape[1] != b.shape[0]
-            or a.dtype != b.dtype
-            or a.device != b.device
-        ):
-            return original(a, b)
-        M, K = a.shape
-        N = b.shape[1]
-        if a.dtype not in (torch.float32, torch.float64):
-            return original(a, b)
-        if M == 0 or N == 0:
-            return torch.empty((M, N), dtype=a.dtype, device=a.device)
-        if K == 0:
-            return torch.zeros((M, N), dtype=a.dtype, device=a.device)
-        if K == 1:
-            return _rank_one_output(a, b)
-        if (
-            a.dtype != torch.float32
-            or M > 1048576
-            or N > 4096
-            or K > 4096
-            or (M - 1) * a.stride(0) + (K - 1) * a.stride(1) >= 2**31
-            or (K - 1) * b.stride(0) + (N - 1) * b.stride(1) >= 2**31
-        ):
-            return original(a, b)
-        out = torch.empty((M, N), dtype=a.dtype, device=a.device)
-        with torch_device_fn.device(a.device):
-            if N == 1 and K <= 256:
-                _mm_vector[(triton.cdiv(M, 16),)](
-                    a,
-                    b,
-                    out,
-                    M,
-                    K,
-                    a.stride(0),
-                    a.stride(1),
-                    b.stride(0),
-                    BM=16,
-                    BK=triton.next_power_of_2(K),
-                    num_warps=4,
-                    num_stages=1,
-                )
-            else:
-                if M >= 32768 and N >= 64:
-                    BM, BN, BK, warps = 64, 128, 64, 8
-                elif M >= 1024 and N >= 64:
-                    BM, BN, BK, warps = 32, 64, (64 if K >= 256 and N <= 128 else 32), 4
-                else:
-                    BM, BN, BK, warps = (
-                        (16 if N <= 48 else 32),
-                        16 if N <= 48 else 32,
-                        32,
-                        (1 if N <= 48 else 4),
-                    )
-                grid = (triton.cdiv(M, BM) * triton.cdiv(N, BN),)
-                _mm_tiled[grid](
-                    a,
-                    b,
-                    out,
-                    M,
-                    N,
-                    K,
-                    a.stride(0),
-                    a.stride(1),
-                    b.stride(0),
-                    b.stride(1),
-                    BM=BM,
-                    BN=BN,
-                    BK=BK,
-                    num_warps=warps,
-                    num_stages=1,
-                )
-        return out
+    # Use the same tuned backend entry for both supported activation paths.
+    from flag_gems.runtime.backend._hygon.ops.mm import mm
 
     flag_gems.mm = mm
 

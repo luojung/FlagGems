@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "scope": "All implementation blobs identified across the locally available optimization archive history, plus matrix candidate revisions. Excludes benchmark/control scripts, logs, inputs, credentials, binaries and unrelated upstream history.",
+  "scope": "All implementation blobs identified across the locally available optimization archive history, plus matrix candidate revisions. Excludes benchmark/control scripts, logs, inputs, credentials, binaries and unrelated upstream history. Includes the 2026-11-05 matrix installer update delegating mm to the tuned Hygon backend.",
   "selection_rule": "Python functions named install or decorated with triton.jit; all 15 operator-registry source paths are checked separately. Duplicate content is stored once.",
   "archive_commit_count": 22,
-  "source_count": 91,
+  "source_count": 92,
   "sources": [
     {
       "path": "docs/hygon-optimization/history/sources/00f407bffaa7865d4a3ef4a4f86e11e593ea586dfb336ad579f9efed6a692d6c.py.txt",
@@ -642,6 +642,15 @@
         "experiments/sort-randperm-ai4perf-20261027/evidence/sort-r4/snapshots/candidate-1/variant.py"
       ],
       "status": "historical_source_only_not_enabled_or_requalified"
+    },
+    {
+      "path": "docs/hygon-optimization/history/sources/7f855dc8c79eeff4bde0e901043e117b8a21f3aa3cf5fbc52b5b72b6d0f6503d.py.txt",
+      "sha256": "7f855dc8c79eeff4bde0e901043e117b8a21f3aa3cf5fbc52b5b72b6d0f6503d",
+      "origin_commit": "working-tree-based-on-6d9ac5543fb2a543ec00a7770c8c583f1a9f1f29",
+      "origins": [
+        "src/flag_gems/runtime/backend/_hygon/experimental/matrix.py"
+      ],
+      "status": "mm_delegates_to_device_validated_backend_20261105"
     },
     {
       "path": "docs/hygon-optimization/history/sources/81e5ae4ac6e396c363be2228c7894bd9d04080224c4cd7eae2907a5f4936fb89.py.txt",
