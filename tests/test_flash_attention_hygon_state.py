@@ -11,6 +11,7 @@ import flag_gems
     [
         (None, "random"),
         (128**-0.5, "random"),
+        (0.08838834764831843, "random"),
         (0.125, "random"),
         (-(128**-0.5), "random"),
         (None, "mixed_large"),

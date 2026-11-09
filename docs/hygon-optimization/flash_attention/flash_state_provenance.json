@@ -1,5 +1,7 @@
 {
-  "status": "DAS target unverified; previous 94.57% acceptance claim withdrawn",
+  "scope": "Historical a01r3n18 DAS 185 run; not current source or the current DAS 2.8.4 verification",
+  "current_verification": "node15-verification/summary.json",
+  "status": "Historical DAS 185 target unverified; previous 94.57% acceptance claim withdrawn",
   "operator": "aten::_scaled_dot_product_flash_attention",
   "git_base": "6d9ac5543fb2a543ec00a7770c8c583f1a9f1f29",
   "repository": "/public/home/wzx226226/算子优化/FlagGems-hygon-optimization",
@@ -49,7 +51,7 @@
   "pytest": "pytest-current.log",
   "static_checks": "ci-static-current.log",
   "profile": "profiles/repo-final-1.json/.db",
-  "performance_summary": "repo_final_kernel_summary.json",
+  "performance_summary": "repo_final_kernel_summary.json#/historical_profile",
   "pre_commit": "Attempted; image lacks pre_commit. Independent format/lint/static checks passed.",
   "implementation": "Autonomous gfx936 HIP MMAC + Triton norms/stable fallback; no DAS compute calls.",
   "acceptance_correction": "acceptance_correction.json",

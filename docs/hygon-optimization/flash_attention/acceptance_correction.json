@@ -1,4 +1,6 @@
 {
+  "scope": "Historical correction for the invalid DAS 185 comparison; not the current DAS 2.8.4 verification",
+  "current_verification": "node15-verification/summary.json",
   "source": "User-supplied external review summary; raw review receipt not yet provided",
   "operator": "aten::_scaled_dot_product_flash_attention",
   "old_flaggems_device_us": 4664.8,

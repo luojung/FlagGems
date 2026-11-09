@@ -55,15 +55,25 @@ timing = {
     for key in ["wheel", "aten", "repo"]
 }
 result = {
-    "status": "common_original_PR_gate_passed; external_review_gate_confirmation_pending",
+    "status": "passed_common_captured_input_contract",
+    "acceptance_scope": (
+        "Recorded fixture and common full-output/LSE contract; "
+        "no claim of replaying external review inputs"
+    ),
     "run_id": v["run_id"],
     "contract_sha256": v["contract_sha256"],
+    "input_sha256": v["input_sha256"],
+    "device": v["device"],
+    "native": v.get("native"),
     "method": "hipprof HIPOPS duration; all helper kernels included; 5 ROIs x 10 calls x 2 repeats",
     "timing_us": timing,
     "diagnostic_wheel_over_repo_under_original_PR_contract": timing["wheel"]
     / timing["repo"],
-    "wheel_over_repo": None,
-    "meets_90": None,
+    "common_contract_meets_90": min(timing["wheel"], timing["aten"]) / timing["repo"]
+    >= 0.9,
+    "wheel_over_repo": timing["wheel"] / timing["repo"],
+    "qualified_native_over_repo": min(timing["wheel"], timing["aten"]) / timing["repo"],
+    "meets_90": min(timing["wheel"], timing["aten"]) / timing["repo"] >= 0.9,
     "external_frozen_gate_verified": False,
     "source_sha256": v["source_sha256"],
     "arms": arms,

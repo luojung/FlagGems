@@ -1,4 +1,4 @@
-"""Common full-tensor gate from the original PR contract; never relax per arm."""
+"""Captured-input full-tensor gate; preserve original PR tolerances for every arm."""
 
 import hashlib
 import json
@@ -18,7 +18,7 @@ CONTRACT = {
     "seed": 20261105,
     "stride": [12589056, 128, 6144, 1],
     "offsets": [0, 2048, 4096],
-    "scale": 128**-0.5,
+    "scale": 0.08838834764831843,
 }
 CONTRACT_SHA256 = hashlib.sha256(
     json.dumps(CONTRACT, sort_keys=True).encode()
@@ -82,7 +82,7 @@ def require_eligible_baselines(receipt):
         raise ValueError("No matching common full-output/LSE accuracy contract")
     if not receipt.get("run_id") or not receipt.get("input_sha256"):
         raise ValueError("Missing current-run input identity")
-    if receipt.get("device", {}).get("physical_card") not in ("4", "5"):
+    if receipt.get("device", {}).get("physical_card") not in ("3", "4"):
         raise ValueError("Missing authorized single-card identity")
     for arm in ARMS:
         result = receipt.get("full_accuracy", {}).get(arm, {})

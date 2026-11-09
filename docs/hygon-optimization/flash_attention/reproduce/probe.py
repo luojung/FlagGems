@@ -1,16 +1,19 @@
 import argparse
 import ctypes
+import importlib
 import json
 import statistics
 import traceback
 from pathlib import Path
 
-import torch
-import torch_fl
-import triton
-import triton.language as tl
-
-import flag_gems
+# Torch-FL and the native extension must register CUDA hooks before FlagGems
+# probes devices. Keep this bootstrap order explicit; isort must not reorder it.
+torch_fl = importlib.import_module("torch_fl")
+torch = importlib.import_module("torch")
+native_fa = importlib.import_module("flash_attn_2_cuda")
+triton = importlib.import_module("triton")
+tl = importlib.import_module("triton.language")
+flag_gems = importlib.import_module("flag_gems")
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--mode", choices=["das", "baseline", "tune"], required=True)

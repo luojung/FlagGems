@@ -118,7 +118,7 @@ class AcceptanceGateTests(unittest.TestCase):
             self.assertIn("historical", result.stderr)
             self.assertFalse((out / "repo_final_kernel_summary.json").exists())
 
-    def test_matching_trace_produces_diagnostic_but_no_external_acceptance(self):
+    def test_matching_trace_produces_scoped_ratio_without_external_replay_claim(self):
         events = []
         start = 0
         for suffix in ("", "_repeat"):
@@ -164,9 +164,10 @@ class AcceptanceGateTests(unittest.TestCase):
             self.assertAlmostEqual(
                 summary["diagnostic_wheel_over_repo_under_original_PR_contract"], 1 / 3
             )
-            self.assertIsNone(summary["wheel_over_repo"])
-            self.assertIsNone(summary["meets_90"])
+            self.assertAlmostEqual(summary["wheel_over_repo"], 1 / 3)
+            self.assertFalse(summary["meets_90"])
             self.assertFalse(summary["external_frozen_gate_verified"])
+            self.assertIn("Recorded fixture", summary["acceptance_scope"])
 
 
 if __name__ == "__main__":

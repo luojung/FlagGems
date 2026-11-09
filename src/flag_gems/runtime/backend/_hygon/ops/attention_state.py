@@ -21,6 +21,8 @@ in BF16. Large-norm tiles use stable online softmax with a high/low
 BF16 probability decomposition. No input values are assumed.
 """
 
+import math
+
 import torch
 import triton
 import triton.language as tl
@@ -318,7 +320,11 @@ def _state_stable(
 
 
 def state_attention(q, k, v, scale):
-    use_hip = scale == 128**-0.5 and _load_state_kernel() is not None
+    # Captured explicit scale uses 1 / sqrt(D), while the default uses D**-0.5.
+    # Their Python doubles differ by one ULP but have identical FP32 values.
+    use_hip = (
+        scale in (128**-0.5, 1.0 / math.sqrt(128)) and _load_state_kernel() is not None
+    )
     bm, bn, w, s, pre, red = (192 if use_hip else 128), 32, 4, 1, False, 1
     b, h, m, d = q.shape
     n = k.shape[2]
@@ -327,7 +333,7 @@ def state_attention(q, k, v, scale):
     tmp = torch.empty((b, h, triton.cdiv(n, 128)), device=q.device, dtype=torch.float32)
     flag = torch.empty((b, h, triton.cdiv(m, bm)), device=q.device, dtype=torch.uint8)
     _state_key_norms[(triton.cdiv(n, 128), h, b)](
-        k, tmp, b, h, n, d, *k.stride()[:3], 128, num_warps=4
+        k, tmp, b, h, n, d, *k.stride()[:3], 128, num_warps=8
     )
     arg = (
         *q.stride()[:3],

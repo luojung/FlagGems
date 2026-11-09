@@ -1,4 +1,5 @@
 import hashlib
+import importlib
 import json
 import os
 import socket
@@ -6,7 +7,6 @@ import uuid
 from importlib.metadata import version
 from pathlib import Path
 
-import flash_attn_2_cuda as fa
 from accuracy_gate import (
     CONTRACT,
     CONTRACT_SHA256,
@@ -18,16 +18,34 @@ from probe import Timer, flag_gems, make_inputs, torch, torch_fl
 
 from flag_gems.runtime.backend._hygon.attention_state_hip import _load_state_kernel
 
+# The extension requires libtorch to have been loaded by probe first.
+fa = importlib.import_module("flash_attn_2_cuda")
+
 inputs, cpu = make_inputs()
 views = [torch_fl._C._flagos_to_cuda_view(x) for x in inputs]
 wv = [x.transpose(1, 2) for x in views]
 wheel = lambda: fa.fwd(
-    *wv, None, None, 0.0, 128**-0.5, False, -1, -1, 0.0, False, None, False, None, 0.0
+    *wv,
+    None,
+    None,
+    0.0,
+    CONTRACT["scale"],
+    False,
+    -1,
+    -1,
+    0.0,
+    False,
+    None,
+    False,
+    None,
+    0.0,
 )
 native = lambda: torch.ops.aten._scaled_dot_product_flash_attention.default(
-    *views, scale=128**-0.5
+    *views, scale=CONTRACT["scale"]
 )
-repo = lambda: flag_gems._scaled_dot_product_flash_attention(*inputs, scale=128**-0.5)
+repo = lambda: flag_gems._scaled_dot_product_flash_attention(
+    *inputs, scale=CONTRACT["scale"]
+)
 library = _load_state_kernel()
 assert library is not None
 binding = torch.library.Library("aten", "IMPL", "PrivateUse1")
@@ -35,7 +53,7 @@ binding.impl(
     "_scaled_dot_product_flash_attention", flag_gems._scaled_dot_product_flash_attention
 )
 repo = lambda: torch.ops.aten._scaled_dot_product_flash_attention.default(
-    *inputs, scale=128**-0.5
+    *inputs, scale=CONTRACT["scale"]
 )
 root = Path(flag_gems.__file__).resolve().parents[2]
 files = [
@@ -46,6 +64,13 @@ files = [
     "tests/test_flash_attention_hygon_state.py",
 ]
 hashes = {f: hashlib.sha256((root / f).read_bytes()).hexdigest() for f in files}
+native_libraries = sorted(
+    {
+        line.split()[-1]
+        for line in Path("/proc/self/maps").read_text().splitlines()
+        if "flash_att" in line and line.split()[-1].startswith("/")
+    }
+)
 result = {
     "schema": 2,
     "run_id": uuid.uuid4().hex,
@@ -61,8 +86,16 @@ result = {
     },
     "native": {
         "version": version("flash-attn"),
+        "options": {
+            name: os.environ.get(name)
+            for name in ("FA_FWD_NO_MLS", "FLASH_ATTENTION_FWD_PREFETCH")
+        },
         "module": fa.__file__,
         "module_sha256": hashlib.sha256(Path(fa.__file__).read_bytes()).hexdigest(),
+        "loaded_libraries_sha256": {
+            path: hashlib.sha256(Path(path).read_bytes()).hexdigest()
+            for path in native_libraries
+        },
     },
     "source_sha256": hashes,
     "binary": library._name,
