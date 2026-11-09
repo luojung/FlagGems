@@ -46,9 +46,30 @@ See [second-correction status](correction-20261109/phase2-long/status.json),
 [source identity](correction-20261109/phase2-long/source-proof.json) and
 [original spreadsheet mapping](correction-20261109/phase2-long/spreadsheet-scope-audit.json).
 The original FP32 and FP64 review failures remain unresolved. A separate
-a01r4n15 run uses card 0 for full MM revalidation and card 1 for dtype; each
-operator runs on one card. Those results are pending at this publication.
+a01r4n15 run uses physical cards 0 and 1 in independent processes; every
+operator itself runs on one card. The completed results are recorded below.
 Formatting, full pre-commit and the required MM static checks pass.
+
+On a01r4n15, the independent PR #2 source passes 33 focused tests and 30 public
+route checks. Full-scope generated accuracy covers all 120 FP32/FP64 cases and
+two seeds: **240/240 records pass** for DAS and new FG under the unchanged
+recorded tolerances. The full 200-call/ROI performance run passes both A/A and
+the 90% target for **44/94** groups; 50 fail stability. Those failures remain
+in the evidence. A separately recorded 1024-call/ROI protocol passes all 22
+preselected focus cases, and then all 36 uncovered unstable cases split across
+the two cards. In total, **94/94 target groups have a passing device-performance
+record**, using 36 groups from the 200-call protocol and 58 from the 1024-call
+protocol. This is coverage across different burst lengths and cards, not one
+uniform full-scope run. Source hashes match the same production implementation.
+Generated inputs still do not close the original reviewer failures, and the PR
+remains a draft.
+
+See [complete cross-node classification](correction-20261109/crossnode-r4n15/status.json),
+[retained full 200-call results](correction-20261109/crossnode-r4n15/device-samples-full-200.json),
+[focused 1024-call results](correction-20261109/crossnode-r4n15/device-samples-focused-1024.json),
+[card-0 remaining results](correction-20261109/crossnode-r4n15/device-samples-remaining-1024-card0.json),
+[card-1 remaining results](correction-20261109/crossnode-r4n15/device-samples-remaining-1024-card1.json)
+and [all measured source proofs](correction-20261109/crossnode-r4n15/source-proof.json).
 
 The first-correction source on a01r3n13 visible card 0 passed 25 focused tests.
 Eighteen public `torch.mm` checks cover three seeds and B offsets 0/131072 for
