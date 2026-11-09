@@ -34,6 +34,8 @@ pytestmark = [
         ((96380, 10), torch.float64),
         ((854, 854, 3), torch.float32),
         ((8193, 3), torch.float32),
+        ((8193, 7), torch.float32),
+        ((8193, 7), torch.float64),
         ((8193, 10), torch.float64),
         ((8193, 32), torch.float64),
     ],
@@ -50,6 +52,38 @@ def test_sum_hygon_short(shape, dtype, keepdim):
     assert result.shape == expected.shape
     assert result.dtype == dtype
     assert torch.all(error <= 8 * torch.finfo(dtype).eps * bound.clamp_min(1))
+
+
+@pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
+@pytest.mark.parametrize("keepdim", [False, True])
+@pytest.mark.parametrize(
+    "shape,stride,offset",
+    [
+        ((8193, 3), (6, 2), 3),
+        ((8193, 7), (16, 2), 5),
+        ((8193, 3), (1, 8193), 0),
+        ((8193, 3), (0, 1), 2),
+        ((8193, 3), (1, 0), 1),
+    ],
+)
+def test_sum_hygon_short_strided(shape, stride, offset, dtype, keepdim):
+    size = offset + sum((n - 1) * s for n, s in zip(shape, stride)) + 1
+    storage = torch.randn(
+        (size,), dtype=dtype, generator=torch.Generator().manual_seed(20261109)
+    )
+    cpu = storage.as_strided(shape, stride, offset)
+    inp = storage.to(flag_gems.device).as_strided(shape, stride, offset)
+    assert inp.stride() == stride
+    assert inp.storage_offset() == offset
+    result = flag_gems.sum_dim(inp, [-1], keepdim=keepdim)
+    expected = cpu.to(torch.float64).sum(-1, keepdim=keepdim)
+    bound = cpu.abs().to(torch.float64).sum(-1, keepdim=keepdim).clamp_min(1)
+    assert result.shape == expected.shape
+    assert result.dtype == dtype
+    assert torch.all(
+        (result.cpu().to(torch.float64) - expected).abs()
+        <= 8 * torch.finfo(dtype).eps * bound
+    )
 
 
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])

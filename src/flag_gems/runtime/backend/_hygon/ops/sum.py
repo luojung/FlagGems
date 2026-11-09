@@ -32,13 +32,15 @@ def sum_short_rows_kernel(
     out,
     M: tl.constexpr,
     N: tl.constexpr,
+    ROW_STRIDE: tl.constexpr,
+    COL_STRIDE: tl.constexpr,
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
 ):
     rows = tl.program_id(0) * BLOCK_M + tl.arange(0, BLOCK_M)
     cols = tl.arange(0, BLOCK_N)
     values = tl.load(
-        inp + rows[:, None] * N + cols[None, :],
+        inp + rows[:, None] * ROW_STRIDE + cols[None, :] * COL_STRIDE,
         (rows[:, None] < M) & (cols[None, :] < N),
         other=0,
     )
@@ -47,22 +49,24 @@ def sum_short_rows_kernel(
 
 
 def sum_dim(inp, dim=None, keepdim=False, *, dtype=None):
-    """Batch short contiguous rows to avoid one workgroup per output element."""
+    """Batch short rows to avoid one workgroup per output element."""
     dims = [dim] if isinstance(dim, int) else dim
     if (
         inp.ndim > 0
         and isinstance(dims, (list, tuple))
         and len(dims) == 1
         and dims[0] in (-1, inp.ndim - 1)
-        and inp.is_contiguous()
+        and (inp.is_contiguous() or inp.ndim == 2)
         and inp.dtype in (torch.float32, torch.float64)
         and (dtype is None or dtype == inp.dtype)
-        and inp.shape[-1] in (3, 10, 32)
+        and inp.shape[-1] in (3, 7, 10, 32)
         and inp.numel() // inp.shape[-1] >= 8192
     ):
         logger.debug("GEMS_HYGON SUM_DIM SHORT_ROWS")
         n = inp.shape[-1]
         m = inp.numel() // n
+        row_stride = inp.stride(0) if inp.ndim == 2 else n
+        col_stride = inp.stride(-1)
         shape = (*inp.shape[:-1], 1) if keepdim else inp.shape[:-1]
         out = torch.empty(shape, dtype=inp.dtype, device=inp.device)
         # Small row counts need more workgroups; larger inputs amortize launch
@@ -75,7 +79,15 @@ def sum_dim(inp, dim=None, keepdim=False, *, dtype=None):
             block_m = 64
         with torch_device_fn.device(inp.device):
             sum_short_rows_kernel[(triton.cdiv(m, block_m),)](
-                inp, out, m, n, block_m, triton.next_power_of_2(n), num_warps=4
+                inp,
+                out,
+                m,
+                n,
+                row_stride,
+                col_stride,
+                block_m,
+                triton.next_power_of_2(n),
+                num_warps=4,
             )
         return out
     return general_sum_dim(inp, dim, keepdim, dtype=dtype)
