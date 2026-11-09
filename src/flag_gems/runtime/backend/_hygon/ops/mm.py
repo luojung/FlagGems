@@ -17,6 +17,7 @@ import logging
 import torch
 import triton
 import triton.language as tl
+
 from flag_gems.runtime import torch_device_fn
 from flag_gems.utils import libentry
 from flag_gems.utils import triton_lang_extension as ext
@@ -185,7 +186,7 @@ _MM_SPECIALIZATION_CONFIGS = {
     (145, 2560, 1024): (32, 32, 128, 2, 4),
     (145, 2560, 10240): (128, 128, 64, 2, 4),
     (145, 2560, 2048): (32, 64, 64, 1, 4),
-    (145, 2560, 262208): (128, 128, 64, 2, 4),
+    (145, 2560, 262208): (256, 256, 32, 2, 8),
 }
 
 
