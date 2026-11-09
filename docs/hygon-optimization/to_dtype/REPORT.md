@@ -57,8 +57,23 @@ See [long-sampling status](correction-20261109/phase2-long/status.json),
 [source identity](correction-20261109/phase2-long/source-proof.json) and
 [spreadsheet mapping](correction-20261109/phase2-long/spreadsheet-scope-audit.json).
 All ten dtype cases are present in the original spreadsheet, rows 1711-1720,
-assigned to the requested owner and originally marked unmeasured. A separate
-a01r4n15 card 1 comparison is running; its results are pending here.
+assigned to the requested owner and originally marked unmeasured.
+
+On a01r4n15 physical card 1 (PCI 0000:36:00.0), a separately declared
+1024-call/ROI comparison passes all ten new FG correctness and A/A checks;
+maximum new-path drift is 2.62%. The seven nonidentity conversions with valid
+native public outputs pass both providers' A/A guard and reach **99.25%-101.75%**
+native DAS/new. The two permuted native outputs still have incorrect strides,
+so they remain outside equivalent-public-baseline acceptance despite the new
+FG outputs being correct and stable. Row 1716 remains an identity. This run
+uses one GPU per operator, with MM work concurrently on physical card 0.
+It changes no production kernel and does not replace the retained user review
+or failed 200-call measurements. There is still no uniform kernel-speedup claim.
+
+See [cross-node classification](correction-20261109/crossnode-r4n15/status.json),
+[every 1024-call sample](correction-20261109/crossnode-r4n15/device-samples-1024.json),
+[retained 200-call comparison](correction-20261109/crossnode-r4n15/device-samples-200-six-providers.json)
+and [runtime/source proof](correction-20261109/crossnode-r4n15/runtime.json).
 
 See [provider definitions](correction-20261109/provider-definitions.json),
 [full device samples](correction-20261109/device-samples-six-providers.json),
