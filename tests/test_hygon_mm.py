@@ -25,6 +25,21 @@ pytestmark = [
 ]
 
 
+@pytest.mark.parametrize("seed", [880301, 7, 101])
+@pytest.mark.parametrize("offset", [0, 17])
+def test_hygon_mm_bf16_small_public(seed, offset):
+    gen = torch.Generator().manual_seed(seed)
+    a = torch.randn((32, 64), dtype=torch.bfloat16, generator=gen)
+    b = torch.randn((64, 32), dtype=torch.bfloat16, generator=gen)
+    aa = a.to(flag_gems.device)
+    storage = torch.empty(offset + b.numel(), dtype=b.dtype, device=flag_gems.device)
+    bb = storage.as_strided(b.shape, b.stride(), offset)
+    bb.copy_(b)
+    with flag_gems.use_gems(include=["mm"]):
+        result = torch.mm(aa, bb).cpu()
+    torch.testing.assert_close(result, a @ b, rtol=0.016, atol=1e-5)
+
+
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 @pytest.mark.parametrize("m,n,k", [(0, 17, 9), (13, 0, 9), (13, 17, 0)])
 def test_hygon_mm_empty(dtype, m, n, k):

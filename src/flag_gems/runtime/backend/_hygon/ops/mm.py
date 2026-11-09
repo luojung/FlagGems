@@ -226,10 +226,14 @@ def _mm_default(a, b):
 
 
 def mm(a, b):
-    """Hygon GEMM with native-stride kernels for FP32 and FP64 workloads."""
+    """Hygon GEMM with native-stride kernels and selected BF16 launches."""
     assert a.ndim == 2 and b.ndim == 2, "mm expects matrices"
     assert a.shape[1] == b.shape[0], "incompatible dimensions"
-    if a.dtype != b.dtype or a.dtype not in (torch.float32, torch.float64):
+    if a.dtype != b.dtype or a.dtype not in (
+        torch.float32,
+        torch.float64,
+        torch.bfloat16,
+    ):
         return _mm_default(a, b)
     m, k = a.shape
     n = b.shape[1]

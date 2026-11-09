@@ -108,3 +108,25 @@ The identity/no-kernel case must not be assigned a speedup ratio.
 Original reports are preserved in `historical/`. Existing raw result and
 validation documents are historical snapshots, explicitly marked as superseded.
 Source/hash/AST checks prove source identity only, not runtime correctness.
+
+## Added regression inputs included in the device-performance target
+
+The added scope includes 54 seed/layout records: thirty FP64 seed/offset
+regressions, eight exact low-mantissa-bit inputs, four both-strided inputs,
+six empty-dimension records and six BF16 small-matrix seed/offset controls.
+The final source adds a 32x32 BF16 tiled launch and two exact both-strided
+reduction configurations. It passes 39 focused tests. All 94 prior exact
+configurations and eleven device-source files remain unchanged.
+
+Current paired coverage passes **50/50 device-work records**, with
+minimum DAS/new **90.71%**. Four M/N-empty
+outputs launch no device work; the two K=0 nonempty outputs are measured.
+Coverage combines thirty initial-source FP64 seed/offset records with sixteen
+final-source layout/BF16/empty records and eight final-source low-bit records.
+It is not a single uniform final-source run. The initial four strided failures
+and case 930037 DAS A/A failure remain in the evidence. Original reviewer
+failures remain unmatched and the PR stays Draft.
+
+See [case-by-case current and retained results](correction-20261109/expanded-r4n15/status.json),
+[unchanged original launches](correction-20261109/expanded-r4n15/unchanged-original-launches.json)
+and [actual measured source proof](correction-20261109/expanded-r4n15/source-proof.json).

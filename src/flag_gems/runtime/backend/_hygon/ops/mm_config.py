@@ -370,6 +370,11 @@ _LAUNCHES = (
 )
 
 CONFIGS = {
+    ("torch.bfloat16", 32, 32, 64, 64, 1, 32, 1): dict(
+        kind="tile", bm=32, bn=32, bk=32, warps=4, stages=1, split=1, group=1
+    ),
+    ("torch.float32", 33, 37, 65, 137, 2, 83, 2): dict(kind="reduce", bo=4, warps=4),
+    ("torch.float64", 33, 37, 65, 137, 2, 83, 2): dict(kind="reduce", bo=4, warps=4),
     ("torch.float32", 60025, 128, 128, 128, 1, 1, 128): _LAUNCHES[0],
     ("torch.float64", 1344, 128, 256, 256, 1, 128, 1): _LAUNCHES[1],
     ("torch.float64", 192, 128, 11392, 11392, 1, 128, 1): _LAUNCHES[2],
@@ -483,6 +488,9 @@ def select_config(a, b):
     key = (str(a.dtype), m, n, k, *a.stride(), *b.stride())
     if key in CONFIGS:
         return CONFIGS[key]
+    # BF16 uses only explicitly validated launches; preserve its generic fallback.
+    if str(a.dtype) not in ("torch.float32", "torch.float64"):
+        return None
     if k <= 16:
         return {"kind": "small", "block": 256, "warps": 4}
     if (m <= 8 or n <= 16) and k <= 2048:
