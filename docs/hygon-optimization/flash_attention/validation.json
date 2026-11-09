@@ -1,0 +1,14 @@
+{
+  "gpu_validation": "Historical six GPU tests and full output/LSE receipts; no GPU rerun during PR preparation",
+  "static_checks": {
+    "check_aten_operators": "passed",
+    "check_init_exports": "passed",
+    "check_operators_yaml": "passed",
+    "check_operator_markers": "passed"
+  },
+  "pre_commit_changed_files": "passed",
+  "pre_commit_all_files": "Attempted; initial formatting fixes applied to changed files. Existing unrelated experimental/__init__.py import grouping is outside this PR. Focused hooks pass.",
+  "measured_source_equivalence": "All five files have equivalent Python AST after import sorting, or identical C++ tokens; see source-equivalence.json",
+  "wheel_build": "passed; required HIP .cpp, loader, Triton implementation and test verified inside wheel",
+  "packaging_check_scope": "Local pure-Python wheel content check; does not claim Windows GPU support"
+}

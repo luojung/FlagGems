@@ -15,7 +15,11 @@
 # Hygon-specific version that uses the optimized hygon flash_attention_forward
 import logging
 
+import torch
+
 from flag_gems.runtime.backend._hygon.ops.attention import flash_attention_forward
+
+from .attention_state import state_attention
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +38,32 @@ def _scaled_dot_product_flash_attention(
     logger.debug("GEMS_HYGON _SCALED_DOT_PRODUCT_FLASH_ATTENTION")
     max_q = query.shape[2]
     max_k = key.shape[2]
+    # The specialization includes a device-side bound and stable fallback.
+    if (
+        query.dtype == key.dtype == value.dtype == torch.bfloat16
+        and query.shape == key.shape == value.shape == (8, 16, 2049, 128)
+        and query.stride() == key.stride() == value.stride() == (12589056, 128, 6144, 1)
+        and dropout_p == 0.0
+        and scale != 0.0
+        and not is_causal
+        and not return_debug_mask
+    ):
+        softmax_scale = query.shape[-1] ** -0.5 if scale is None else scale
+        output, logsumexp = state_attention(query, key, value, softmax_scale)
+        rng_state = torch.empty((2,), dtype=torch.int64, device=query.device)
+        unused = torch.empty((), dtype=torch.int64, device=query.device)
+        return (
+            output,
+            logsumexp,
+            None,
+            None,
+            max_q,
+            max_k,
+            rng_state,
+            unused,
+            None,
+        )
+
     output, logsumexp, rng_state, unused, debug_mask = flash_attention_forward(
         query.transpose(1, 2),
         key.transpose(1, 2),
