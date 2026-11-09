@@ -91,10 +91,10 @@ separately measured DAS/new at 96.00%, 102.18% and 107.17%, with FG A/A drift
 below 0.3%, in the confirmation run. Conditions differ from the user review
 table; these measurements must not be combined with it.
 
-See [current status](correction-20261109/revalidation-status.json),
+See [first-correction status](correction-20261109/revalidation-status.json),
 [device samples](correction-20261109/device-samples-single-cu.json),
 [public route checks](correction-20261109/public-route-checks.json) and
-[source proof](correction-20261109/source-proof.json). The scope performance run
+[first-correction source proof](correction-20261109/source-proof.json). The scope performance run
 applies both PR source patches; the focused tests and public-route checks also
 run against PR #2 independently. The PR remains a draft while the original
 failure report and outstanding performance/stability cases remain unresolved.
