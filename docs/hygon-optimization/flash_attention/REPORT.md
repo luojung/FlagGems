@@ -1,63 +1,54 @@
-# Hygon STATE FlashAttention device performance
+# Hygon STATE FlashAttention: corrected acceptance status
 
-The captured `aten::_scaled_dot_product_flash_attention` input reaches **94.57% of native DAS device performance**, exceeding the 90% target. This conclusion applies to the exact spreadsheet case below.
+**The previous 94.57% DAS performance claim is withdrawn. The DAS 90% target is not verified.** Native FlashAttention fails the frozen LSE accuracy gate and is ineligible as a performance denominator. Historical native timings must not be substituted.
 
-| Implementation | Device kernel time |
-| --- | ---: |
-| Native DAS wheel | 1620.60 us |
-| Native ATen / DAS | 1620.79 us |
-| FlagGems implementation | 1713.74 us |
-| Maximum FlagGems time at the 90% target | 1800.67 us |
+## Current external review result
 
-Performance is DAS device time / FlagGems device time. `repo_final_kernel_summary.json` contains the per-range kernel counts, names and durations: two alternating rounds of five profiler ranges, with ten calls per range. Every constituent kernel is included (key norms, HIP attention, stable fallback check). HIPOPS execution durations exclude host launch gaps, allocation, transfers, event time and initial compilation. Event timing emitted by reproduction scripts is diagnostic only; acceptance uses the profiler kernel sums.
+| Comparison | Device result | Acceptance |
+| --- | --- | --- |
+| Previous FlagGems to new FlagGems | 4664.80 us to 1722.00 us; **2.71x** | Review reports output/LSE correctness and stability pass for both |
+| New FlagGems to native DAS | **No valid ratio** | Review reports **23.6% of native LSE elements fail** the frozen gate |
 
-## Exact input and implementation
+These numbers come from the external review summary supplied by the user. The raw review script/results have not yet been provided or independently rerun here. They supersede the author's previous claim of DAS acceptance. Benefit against the old FlagGems implementation is a separate result from DAS qualification. Only device kernel execution time is in scope; host overhead is excluded.
 
-- Spreadsheet sheet `工况明细`, row 646, STATE model.
-- BF16 Q/K/V: shape `[8, 16, 2049, 128]`, stride `[12589056, 128, 6144, 1]`, shared-storage offsets `0/2048/4096`.
-- Default scale `128**-0.5`, no dropout, non-causal, no debug mask.
-- Original measurement: node a01r3n18, gfx936, physical GPUs 4 and 5, DTK 26.04 development image.
-- Native reference: `flash_attn==2.8.3+das185.dtk2604.torch2100.2608132155.g9febea`.
+## Confirmed validation mistake
 
-The backend specialization uses autonomous HIP MMAC QK/PV computation with FP32 accumulation and BF16 probability rounding. It prefetches K/V and reuses LDS for coalesced output stores. A device Cauchy bound controls fixed-shift softmax; unsafe tiles are recomputed with stable Triton softmax. No DAS compute is called by the optimized implementation, and no tensor contents are assumed.
+The author's earlier native checks used LSE `atol=1e-3, rtol=1e-4`, whereas the FlagGems tests used `atol=2e-5, rtol=2e-5`. The final timing script checked only the candidate against CPU before timing native. Native-vs-wheel equality is not a CPU correctness gate. Those checks did not establish that DAS meets the same numerical contract.
 
-The HIP path requires gfx936 and the default scale. Other scales and unavailable compiler configurations retain the Triton implementation; other input layouts retain the existing general attention path. The measured speed is not a claim about those fallbacks.
+`acceptance_correction.json` records the current status. `repo_final_kernel_summary.json` preserves the earlier profile only under `historical_profile`, marked ineligible for DAS acceptance; its current accepted ratio and `meets_90` fields are null. The historical receipts remain available at PR commit `c8322225a8b33718361b42ee12b310011d8bb393` for audit, not reuse as a denominator.
 
-The optional HIP source is compiled on first use and cached under the user's `~/.cache/flag_gems/hygon_state_flash/`, with a build lock. The development image provides `/opt/flagos/toolchains/aillvm/bin/clang++`; `FLAG_GEMS_HYGON_CLANG` can override that path. Packaging explicitly includes the HIP `.cpp` source. No shared image changes are required.
+## Implementation and input
 
-## Correctness and integration
+The input is spreadsheet row 646, STATE BF16 Q/K/V `[8,16,2049,128]`, shared storage, stride `[12589056,128,6144,1]`, offsets `0/2048/4096`, default scale `128**-0.5`, no dropout, non-causal, no debug mask.
 
-| Check | Recorded result |
-| --- | --- |
-| Full output vs CPU FP32 SDPA | 33,570,816 elements pass; max absolute error 0.00155908 |
-| Full LSE vs CPU FP32 logsumexp | 262,272 elements pass; max absolute error 1.90735e-6 |
-| Large-norm tiles and zero Q/K | Pass; stable fallback exercised |
-| Focused GPU tests | 6 pass: default/explicit-default/positive/negative scale, mixed-large and zero-QK patterns |
-| ATen return contract | Nine return values, shapes and dtypes checked |
+The implementation uses autonomous gfx936 HIP MMAC QK/PV with FP32 accumulation, K/V prefetch and coalesced output stores. A device norm bound selects fixed-shift softmax; unsafe tiles are recomputed with stable Triton softmax. Other input layouts use the existing general attention path; other scales or unavailable compiler configurations use Triton. No DAS computation is delegated by the optimized implementation.
 
-Output tolerance is `atol=0.002, rtol=0.02`; LSE tolerance is `atol=2e-5, rtol=2e-5`. `repo_final_validation.json` and `pytest-current.log` preserve the results. The large-norm full-validation guard receipt uses sampled rows; the focused tests additionally check the explicit tolerance contract.
+The optional HIP source is included in package data, compiled with the development image compiler on first use and cached under the user's `~/.cache/flag_gems/hygon_state_flash/`. `FLAG_GEMS_HYGON_CLANG` overrides the default compiler path. The five measured sources and their formatted PR equivalents are recorded in `source-equivalence.json`; the correction changes validation and reporting, not the computational kernels.
 
-This Torch-FL image does not generate a PrivateUse1 kernel for the exact flash ATen entry. The test and profiler script explicitly register the FlagGems implementation for their process, then call `torch.ops.aten._scaled_dot_product_flash_attention.default`. The performance result therefore verifies that bound ATen implementation; automatic routing in an unmodified Torch-FL process remains an integration limitation. Native DAS uses Torch-FL's zero-copy CUDA view.
+Historical author checks cover all 33,570,816 output and 262,272 LSE elements for the candidate, plus six focused GPU tests. Those receipts establish only their recorded scope. The user-provided review additionally reports candidate and old-version correctness/stability. Neither provides an eligible native baseline.
 
-The hashes in `flash_state_provenance.json` identify the five originally measured implementation/test files. Repository formatting, import sorting and Git newline normalization change some PR file hashes; `source-equivalence.json` records both versions and verifies Python AST equivalence after import ordering, or identical C++ tokens. This PR also adds documentation and package data without changing the measured computation. Historical GPU checks were run in the authorized development environment; preparing this PR does not constitute a fresh GPU rerun.
+The original performance profile used GPU 4; full candidate correctness validation ran on GPU 5. This is not a claim that each card independently passed the performance target. The original a01r3n18 allocation is now inaccessible; no fresh GPU run is claimed in this correction.
 
-## Reproduction
+## Corrected reproduction safeguards
 
-Use the same DTK/Torch-FL development image and the specified DAS wheel. Run on a compute node with an authorized resource allocation, selecting the available physical GPU before launching the image. The original environment runner accepts `--source /path/to/this/checkout`.
+`reproduce/accuracy_gate.py` applies the original PR output tolerance (`atol=0.002, rtol=0.02`) and LSE tolerance (`atol=2e-5, rtol=2e-5`) identically to all three arms: wheel DAS, native ATen/DAS and new FlagGems. It checks every element against CPU FP32 SDPA output and CPU FP32 matmul/logsumexp LSE, records failed counts/percentages and nonfinite values, and rejects shape broadcasting or partial validation. These constants are preserved without relaxing native; agreement with the external review's exact frozen script is still pending.
 
-Run the focused test from the repository root:
+`bench_repo_final.py` writes a fresh run/input/source/native-library identity before validation and does not emit any timing ranges unless all arms pass. Failed validation is written to the receipt; no historical timing fallback exists. `analyze_profile.py` requires the matching full gate and run ID, rejects old/mixed traces, and requires all five ranges in both rounds. While the external frozen gate is unconfirmed, it emits only a diagnostic ratio under the original common PR contract; the accepted DAS ratio and `meets_90` stay null.
+
+CPU guard regressions run without GPU access:
 
 ```bash
-pytest tests/test_flash_attention_hygon_state.py --ref cpu -q
+python docs/hygon-optimization/flash_attention/reproduce/test_accuracy_gate.py
 ```
 
-`reproduce/probe.py`, `bench_repo_final.py` and `validate_repo_final.py` preserve the measurement inputs and validation procedure. Their shared helper expects the DTK runtime at `/public/software/compiler/dtk-26.04`; adapt that runtime location when using a different image. From a separate writable output directory, with the reproduction directory on `PYTHONPATH`, run:
+On an allocated authorized compute node, use the original DTK/Torch-FL image and installed DAS wheel, select a single GPU 4 or 5, and run the image with `--source /path/to/checkout`. Run in a new writable output directory with `PYTHONPATH` pointing to `reproduce/`:
 
 ```bash
-python /path/to/reproduce/validate_repo_final.py --mode tune
 hipprof --hip-trace --hiptx-trace --output-type 0 -o profile \
   python /path/to/reproduce/bench_repo_final.py --mode tune --profile
 python /path/to/reproduce/analyze_profile.py profile.json
 ```
 
-The analyzer checks the expected kernel counts and recomputes the device-only result. Keep the resulting `repo_final_profile_validation.json` beside the trace when analyzing it. Full traces remain in the original measurement workspace; the compact per-range results are included here.
+The shared runtime helper expects `/public/software/compiler/dtk-26.04`; adapt that location if necessary. A native gate failure intentionally stops acceptance timing. `validate_repo_final.py` and the focused GPU test remain candidate-only historical checks and cannot qualify DAS.
+
+To complete the original target, a native DAS implementation/configuration must first pass the exact frozen gate. Then each tested card needs its own same-input, same-run device-only comparison. A faster previous FlagGems baseline or a historical native time cannot replace this evidence.

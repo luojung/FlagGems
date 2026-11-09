@@ -1,5 +1,5 @@
 {
-  "status": "target achieved",
+  "status": "DAS target unverified; previous 94.57% acceptance claim withdrawn",
   "operator": "aten::_scaled_dot_product_flash_attention",
   "git_base": "6d9ac5543fb2a543ec00a7770c8c583f1a9f1f29",
   "repository": "/public/home/wzx226226/算子优化/FlagGems-hygon-optimization",
@@ -33,8 +33,8 @@
     "aten": 1620.792,
     "repo": 1713.7359499999998
   },
-  "das_over_implementation": 0.9456532670625251,
-  "meets_90": true,
+  "das_over_implementation": null,
+  "meets_90": null,
   "timing_method": "hipprof HIPOPS duration; all helper kernels included; 5 ROIs x 10 calls x 2 repeats",
   "source_sha256": {
     "src/flag_gems/runtime/backend/_hygon/attention_state_hip.py": "5c04672ac2450071c4a9e2cd2a70b8e8489f1526218a1d42a2df471ff947932f",
@@ -51,5 +51,7 @@
   "profile": "profiles/repo-final-1.json/.db",
   "performance_summary": "repo_final_kernel_summary.json",
   "pre_commit": "Attempted; image lacks pre_commit. Independent format/lint/static checks passed.",
-  "implementation": "Autonomous gfx936 HIP MMAC + Triton norms/stable fallback; no DAS compute calls."
+  "implementation": "Autonomous gfx936 HIP MMAC + Triton norms/stable fallback; no DAS compute calls.",
+  "acceptance_correction": "acceptance_correction.json",
+  "timing_scope": "Historical diagnostic only; ineligible native baseline must not be used as denominator"
 }

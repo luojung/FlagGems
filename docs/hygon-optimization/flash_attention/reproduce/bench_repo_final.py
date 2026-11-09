@@ -1,9 +1,20 @@
 import hashlib
 import json
+import os
+import socket
+import uuid
+from importlib.metadata import version
 from pathlib import Path
 
 import flash_attn_2_cuda as fa
-from probe import Timer, accuracy, flag_gems, make_inputs, torch, torch_fl
+from accuracy_gate import (
+    CONTRACT,
+    CONTRACT_SHA256,
+    check_full,
+    cpu_reference,
+    require_eligible_baselines,
+)
+from probe import Timer, flag_gems, make_inputs, torch, torch_fl
 
 from flag_gems.runtime.backend._hygon.attention_state_hip import _load_state_kernel
 
@@ -26,9 +37,6 @@ binding.impl(
 repo = lambda: torch.ops.aten._scaled_dot_product_flash_attention.default(
     *inputs, scale=128**-0.5
 )
-y = repo()
-torch.flagos.synchronize()
-check = accuracy(*y[:2], cpu)
 root = Path(flag_gems.__file__).resolve().parents[2]
 files = [
     "src/flag_gems/runtime/backend/_hygon/attention_state_hip.py",
@@ -39,13 +47,55 @@ files = [
 ]
 hashes = {f: hashlib.sha256((root / f).read_bytes()).hexdigest() for f in files}
 result = {
-    "repo_accuracy": check,
+    "schema": 2,
+    "run_id": uuid.uuid4().hex,
+    "contract": CONTRACT,
+    "contract_sha256": CONTRACT_SHA256,
+    "input_sha256": hashlib.sha256(
+        cpu[0]._base.view(torch.uint8).numpy().tobytes()
+    ).hexdigest(),
+    "device": {
+        "node": socket.gethostname(),
+        "physical_card": os.environ.get("HIP_VISIBLE_DEVICES"),
+        "pid": os.getpid(),
+    },
+    "native": {
+        "version": version("flash-attn"),
+        "module": fa.__file__,
+        "module_sha256": hashlib.sha256(Path(fa.__file__).read_bytes()).hexdigest(),
+    },
     "source_sha256": hashes,
     "binary": library._name,
     "binary_sha256": hashlib.sha256(Path(library._name).read_bytes()).hexdigest(),
     "timings": {},
+    "full_accuracy": {},
+    "acceptance_timing_started": False,
 }
 
+receipt_path = Path("repo_final_profile_validation.json")
+receipt_path.write_text(json.dumps(result, indent=2))
+reference = cpu_reference(cpu)
+for label, fn in (("wheel", wheel), ("aten", native), ("repo", repo)):
+    y = fn()
+    torch.flagos.synchronize()
+    if label == "wheel":
+        out = torch_fl._C._cuda_to_flagos_view(y[0]).transpose(1, 2)
+        lse = torch_fl._C._cuda_to_flagos_view(y[5])
+    elif label == "aten":
+        out, lse = [torch_fl._C._cuda_to_flagos_view(t) for t in y[:2]]
+    else:
+        out, lse = y[:2]
+    try:
+        result["full_accuracy"][label] = check_full(out, lse, reference)
+    except (ValueError, RuntimeError) as exc:
+        result["full_accuracy"][label] = {"error": str(exc)}
+    receipt_path.write_text(json.dumps(result, indent=2))
+    del y, out, lse
+require_eligible_baselines(result)
+del reference
+
+# No timing range is emitted until all three arms pass the same full gate.
+result["acceptance_timing_started"] = True
 timer = Timer()
 for label, fn in [
     ("wheel", wheel),
@@ -55,6 +105,6 @@ for label, fn in [
     ("aten_repeat", native),
     ("repo_repeat", repo),
 ]:
-    result["timings"][label] = timer.bench(fn, label, rounds=5)
+    result["timings"][label] = timer.bench(fn, result["run_id"] + ":" + label, rounds=5)
     print("TIMING", label, result["timings"][label], flush=True)
 Path("repo_final_profile_validation.json").write_text(json.dumps(result, indent=2))
