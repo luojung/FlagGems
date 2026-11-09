@@ -18,3 +18,5 @@ Both providers submit ten mm calls behind the same GPU gate. The gate is launche
 Final regression: 120/120 FP32 and FP64 spreadsheet cases pass a second seed (100003). The ATen dispatcher, direct entry, and experimental matrix installer pass FP32/FP64 and BF16 fallback checks. The focused GPU suite passes 17 tests (3 deselected), source inventory passes 8 tests, and the four required static checks and pre-commit checks pass. See `validation.json`.
 
 A fresh process with `mm = flaggems` witnesses exactly one optimized mm export call for each FP32 and FP64 ATen mm invocation. See `validation/mm-route-witness.json`.
+
+Source hashes in `source_sha256` and `validation/remote-source-sha256.txt` describe the raw measured files. Most used CRLF; Git stores LF text. `validation/source-representations.json` verifies all 15 sources are byte-for-byte identical to the committed Git blobs after CRLF-to-LF normalization, and `committed_source_sha256_lf` records the portable committed-file hashes. No executable code changed.
