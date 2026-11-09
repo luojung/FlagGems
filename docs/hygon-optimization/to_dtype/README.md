@@ -1,3 +1,5 @@
+> Acceptance withdrawn (2026-11-09). PR remains draft; see [current review status](REPORT.md). The following is historical documentation.
+
 # Hygon dtype conversion
 
 This change targets the ten exact `aten::to.dtype` inputs assigned to 万 in the spreadsheet. See [REPORT.md](REPORT.md) and [results.csv](results.csv).

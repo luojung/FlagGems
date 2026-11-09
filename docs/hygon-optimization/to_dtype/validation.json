@@ -1,4 +1,13 @@
 {
+  "acceptance_status": {
+    "date": "2026-11-09",
+    "pr_is_draft": true,
+    "accepted": false,
+    "status": "superseded_historical_measurements",
+    "current_status": "REPORT.md",
+    "reason": "User review found new correctness regression and/or unaccepted performance stability; prior blanket acceptance withdrawn.",
+    "preserved_fields": "All original observations remain historical; they are not current acceptance evidence."
+  },
   "summary": {
     "spreadsheet_cases": 10,
     "converted_cases": 9,
