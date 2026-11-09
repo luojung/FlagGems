@@ -24,11 +24,27 @@ is not semantically equivalent for layout acceptance. A low-level
 `_to_copy.out` boxing reference with explicit preserved strides is an additional
 reference and must not be relabeled as the same public baseline.
 
-Fresh measurements on a01r3n13 are in progress. Each provider requires full
-value/dtype/stride/alias checks, actual route/kernel evidence, independent A/A
-blocks and device-only timings with all constituent kernels included. Failed
-stability checks must not produce an accepted speedup. The new measurement
-protocol must be reported separately from the user's review conditions.
+The standalone PR #3 source passes 33 focused tests on a01r3n13 visible card 0.
+Fresh measurements distinguish six providers, including an explicit recreation
+of the original three-field `_to_copy` registration, the unchanged generic
+kernel, a routing-only change, the optimized public path and a separate
+valid-layout boxing reference. Native kernel names confirm the executed paths.
+Only the two FP32-to-BF16 spreadsheet conversions execute `cast_dense`.
+
+The complete single-compute-unit gate comparison checks all ten exact layouts
+with three A/A blocks, five ranges per block and twenty calls per range. New
+FG value/dtype/stride/alias checks pass. However, row 1715 measures 5.456 us
+against the valid-layout boxing reference's 4.808 us (88.12%), despite a stable
+new-path A/A result. Row 1720 fails the newly declared 5% A/A guard (14.89%
+drift). The two permuted old public outputs still have incorrect strides.
+There is no blanket acceptance and no new dtype kernel change in this correction.
+
+See [provider definitions](correction-20261109/provider-definitions.json),
+[full device samples](correction-20261109/device-samples-six-providers.json),
+[status](correction-20261109/revalidation-status.json) and
+[source proof](correction-20261109/source-proof.json). Timing conditions differ
+from the user's review table; preserve both records and do not combine their
+absolute timings. Failed stability checks must not produce an accepted speedup.
 
 Original reports are preserved in `historical/`. Existing raw result and
 validation documents are historical snapshots, explicitly marked as superseded.
