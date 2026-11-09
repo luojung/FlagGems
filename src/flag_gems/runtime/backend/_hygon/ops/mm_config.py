@@ -25,15 +25,18 @@ _LAUNCHES = (
         "group": 8,
     },
     {
-        "kind": "peel",
+        # Explicit lane layouts avoid the compiler-sensitive peeled-load path.
+        "kind": "swizzle",
         "group": 1,
         "tm": 1,
         "tn": 1,
         "wm": 1,
         "warps": 2,
-        "prefetch": 16,
+        "prefetch": 8,
         "split": 1,
         "trans": False,
+        "pipe": True,
+        "swap": False,
     },
     {
         "kind": "mmac",

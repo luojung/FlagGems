@@ -22,15 +22,40 @@ The reported failure was reproduced by the reviewer on two nodes. Passing a
 different input or environment does not resolve that report. Do not relax
 accuracy tolerances to convert a failure into acceptance.
 
-On a01r3n13, an isolated checkout and fresh cache have so far passed 42 FP64
-checks (three seeds, B offsets 0 and 131072, seven providers, full CPU FP64
-reference, atol=rtol=1e-10). This has NOT reproduced or fixed the review failure.
-The exact reviewer input, test entry point and environment still need to be
-matched. The first new device-only comparison measured the proposed peel path
-at 16.784 us against DAS 13.816 us (82.31%) for [1344,256] x [256,128], below
-the 90% target. Alternative kernels are under investigation. These fresh
-measurements use different conditions from the review table and do not replace
-it. No kernel fix has yet been accepted.
+The current correction replaces all three selected `peel` configurations with
+the existing explicit-layout `swizzle` kernel, pipelined loads, prefetch 8 and
+two warps. It bypasses the reported compiler-sensitive path without asserting
+a source-only or compiler-only root cause. The original failure has not been
+reproduced in this isolated environment, and is NOT marked resolved. The exact
+reviewer input, test entry point and environment still need to be matched.
+
+On a01r3n13 visible card 0, the standalone PR #2 source passes 25 focused tests.
+Eighteen public `torch.mm` checks cover three seeds and B offsets 0/131072 for
+each former peel case. Every call witnesses one FG export and one explicit-layout
+kernel launch, and checks every output against CPU FP64 at atol=rtol=1e-10.
+The original 42-check diagnostic did not reproduce the old peel failure either;
+its passing result is not evidence that the reviewer report was incorrect.
+
+The expanded scope run checks all 120 FP32/FP64 spreadsheet cases with seeds
+100003 and 880301. All 240 case/seed records pass for DAS and the new FG export
+under the recorded tolerances (FP64 atol=rtol=1e-10; FP32 atol=2e-4, rtol=1e-4).
+These generated inputs do not resolve the reviewer's shared FP32 1-element failure.
+
+Only **75/94** target groups pass both the 90% paired DAS threshold and the
+newly declared 5% A/A guard in the single-compute-unit gate protocol. Rows 20
+and 32 remain below 90%; 17 further rows fail stability for FG and/or DAS. They
+are diagnostic, not accepted speedups. The three replacement configurations
+separately measured DAS/new at 96.00%, 102.18% and 107.17%, with FG A/A drift
+below 0.3%, in the confirmation run. Conditions differ from the user review
+table; these measurements must not be combined with it.
+
+See [current status](correction-20261109/revalidation-status.json),
+[device samples](correction-20261109/device-samples-single-cu.json),
+[public route checks](correction-20261109/public-route-checks.json) and
+[source proof](correction-20261109/source-proof.json). The scope performance run
+applies both PR source patches; the focused tests and public-route checks also
+run against PR #2 independently. The PR remains a draft while the original
+failure report and outstanding performance/stability cases remain unresolved.
 
 For all new acceptance, require full value/layout checks before performance,
 actual kernel/route evidence, matching valid DAS semantics, same-device paired

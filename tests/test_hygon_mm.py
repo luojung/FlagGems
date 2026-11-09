@@ -65,7 +65,17 @@ def test_hygon_mm_offset_and_both_strides(dtype, seed):
     torch.testing.assert_close(y, ref, rtol=tol, atol=tol)
 
 
-@pytest.mark.parametrize("m,n,k", [(192, 128, 128), (192, 6528, 89), (2208, 1280, 64)])
+@pytest.mark.parametrize(
+    "m,n,k",
+    [
+        (192, 128, 128),
+        (192, 6528, 89),
+        (2208, 1280, 64),
+        (1344, 128, 256),
+        (2208, 64, 64),
+        (576, 128, 128),
+    ],
+)
 def test_hygon_mm_fp64_keeps_low_mantissa_bits(m, n, k):
     # These bits disappear if an MMAC operand is silently converted to FP32.
     a = torch.zeros((m, k), dtype=torch.float64)
@@ -74,3 +84,25 @@ def test_hygon_mm_fp64_keeps_low_mantissa_bits(m, n, k):
     a[:, 1] = -1.0
     y = flag_gems.mm(a.to(flag_gems.device), b.to(flag_gems.device)).cpu()
     torch.testing.assert_close(y, a @ b, rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("m,n,k", [(1344, 128, 256), (2208, 64, 64), (576, 128, 128)])
+@pytest.mark.parametrize("seed", [1238, 101241, 907])
+def test_hygon_mm_fp64_reported_peel_regression(m, n, k, seed):
+    gen = torch.Generator().manual_seed(seed)
+    a = torch.randn((m, k), dtype=torch.float64, generator=gen)
+    b = torch.randn((k, n), dtype=torch.float64, generator=gen)
+    reference = a @ b
+    aa = a.to(flag_gems.device)
+    outputs = []
+    for offset in [0, 131072]:
+        # Preserve identical logical inputs while changing only B's offset.
+        storage = torch.empty(offset + b.numel(), dtype=b.dtype, device=aa.device)
+        bb = storage.as_strided(b.shape, b.stride(), offset)
+        bb.copy_(b)
+        assert bb.storage_offset() == offset
+        assert torch.equal(bb.cpu(), b)
+        result = flag_gems.mm(aa, bb).cpu()
+        torch.testing.assert_close(result, reference, rtol=1e-10, atol=1e-10)
+        outputs.append(result)
+    torch.testing.assert_close(outputs[0], outputs[1], rtol=0, atol=0)
