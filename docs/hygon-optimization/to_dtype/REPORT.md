@@ -28,3 +28,5 @@ The pinned Torch-FL `_to_copy` wrapper directly calls its C++ implementation and
 The first correctly routed generic run took 6.176 us for row 1719; the final GPU 0 result is 3.792 us. Rounding, subnormals, signed zeros, infinities, NaNs, storage offsets, empty tensors, dense permutations and layouts with holes are covered by the GPU tests.
 
 Final formatting and lint checks: passed (all tracked files and the explicit changed/new file set). See `validation.json` and `validation/` for source proof, samples, audits and logs.
+
+The measured kernel hash matches the committed kernel. The final formatter reflowed the test file after the 33-test run; its raw hash therefore differs. The exact measured test is preserved in `validation/measured-test-source.py.txt` and matches the original recorded SHA256. `validation/source-representations.json` verifies its complete executable AST is identical to the committed test. `committed_source_sha256_lf` records the committed source hashes.
