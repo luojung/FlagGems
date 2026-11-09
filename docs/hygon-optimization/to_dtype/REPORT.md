@@ -100,3 +100,18 @@ ratio. No dtype production code changed for this extension.
 See [all added cases and limitations](correction-20261109/expanded-r4n15/status.json),
 [all device samples and components](correction-20261109/expanded-r4n15/device-samples.json)
 and [measured source proof](correction-20261109/expanded-r4n15/source-proof.json).
+
+## Explicit native conversion reference for invalid public layouts
+
+A separate valid device reference allocates the required output strides on each
+call and invokes boxing `aten.copy_.default(output, input)`. The trace proves
+exactly one native conversion kernel and no D2D copy. All value/dtype/stride/alias
+checks pass for rows 1712/1713 and added case 920001. Against this reference,
+new public FG reaches **99.74%, 99.18%, and 100.17%**, respectively; both
+providers pass the unchanged A/A guard. This is a device conversion comparison
+through a different ATen entry point, not the same public `Tensor.to` baseline.
+The public DAS layout failures remain recorded and are not declared fixed.
+
+See [reference definition and all three results](correction-20261109/explicit-native-layout-r4n15/status.json),
+[every device sample](correction-20261109/explicit-native-layout-r4n15/device-samples.json)
+and [source/runtime identity](correction-20261109/explicit-native-layout-r4n15/runtime.json).
