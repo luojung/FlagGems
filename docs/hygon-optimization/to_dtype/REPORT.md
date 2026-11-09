@@ -85,3 +85,18 @@ absolute timings. Failed stability checks must not produce an accepted speedup.
 Original reports are preserved in `historical/`. Existing raw result and
 validation documents are historical snapshots, explicitly marked as superseded.
 Source/hash/AST checks prove source identity only, not runtime correctness.
+
+## Added regression cases on a01r4n15
+
+The user has included added regression inputs in the same DAS/new >=90% goal.
+All 13 dtype regression inputs (six views in two memory formats, plus FP32/BF16
+rounding and special values) pass new public and new export correctness and
+the unchanged 5% A/A guard at 1024 calls/ROI. The ten inputs with device work
+and correct native public outputs reach **99.91%-200.49%** DAS/new. Two empty
+views launch no device work. The preserve-format transpose has incorrect native
+public DAS output strides; it remains an acceptance gap, with no valid public
+ratio. No dtype production code changed for this extension.
+
+See [all added cases and limitations](correction-20261109/expanded-r4n15/status.json),
+[all device samples and components](correction-20261109/expanded-r4n15/device-samples.json)
+and [measured source proof](correction-20261109/expanded-r4n15/source-proof.json).
