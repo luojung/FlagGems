@@ -1,4 +1,13 @@
 {
+  "acceptance_status": {
+    "date": "2026-11-09",
+    "pr_is_draft": true,
+    "accepted": false,
+    "status": "superseded_historical_measurements",
+    "current_status": "REPORT.md",
+    "reason": "User review found new correctness regression and/or unaccepted performance stability; prior blanket acceptance withdrawn.",
+    "preserved_fields": "All original observations remain historical; they are not current acceptance evidence."
+  },
   "base_commit": "6d9ac5543fb2a543ec00a7770c8c583f1a9f1f29",
   "device_cards": [
     0,

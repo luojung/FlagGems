@@ -1,3 +1,5 @@
+> Acceptance withdrawn (2026-11-09). PR remains draft; see [current review status](REPORT.md). The following is historical documentation.
+
 # Hygon aten::mm device optimization
 
 Scope: the 94 `aten::mm` spreadsheet cases assigned to 万 with status
