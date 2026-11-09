@@ -31,13 +31,34 @@ kernel, a routing-only change, the optimized public path and a separate
 valid-layout boxing reference. Native kernel names confirm the executed paths.
 Only the two FP32-to-BF16 spreadsheet conversions execute `cast_dense`.
 
-The complete single-compute-unit gate comparison checks all ten exact layouts
+The earlier single-compute-unit gate comparison checked all ten exact layouts
 with three A/A blocks, five ranges per block and twenty calls per range. New
 FG value/dtype/stride/alias checks pass. However, row 1715 measures 5.456 us
 against the valid-layout boxing reference's 4.808 us (88.12%), despite a stable
-new-path A/A result. Row 1720 fails the newly declared 5% A/A guard (14.89%
+new-path A/A result. This was a kernel-only proxy comparison: the later trace
+audit found an additional device copy in that proxy, so 88.12% does not express
+its complete device cost or the same public API baseline. Row 1720 failed the newly declared 5% A/A guard (14.89%
 drift). The two permuted old public outputs still have incorrect strides.
 There is no blanket acceptance and no new dtype kernel change in this correction.
+
+A separately recorded 200-call/ROI comparison preserves all old failures and
+retains both kernel and device-copy components. The explicit-layout boxing
+`_to_copy.out` reference performs one conversion kernel and one DeviceToDevice
+copy per nonidentity call; it remains an additional reference. Neither the
+native public nor FG public measurements contain in-range device copies.
+All ten new FG value/dtype/stride/alias checks pass. New public A/A still fails
+for rows 1712, 1713, 1717, 1718 and 1720. Against the native public baseline,
+only rows 1714 and 1719 pass both sides' A/A guard and the 90% threshold in this
+run. Rows 1712 and 1713 still have invalid native public output strides; row
+1716 remains a no-kernel identity. Do not infer a uniform new-kernel speedup.
+
+See [long-sampling status](correction-20261109/phase2-long/status.json),
+[kernel and copy samples](correction-20261109/phase2-long/device-samples-six-providers.json),
+[source identity](correction-20261109/phase2-long/source-proof.json) and
+[spreadsheet mapping](correction-20261109/phase2-long/spreadsheet-scope-audit.json).
+All ten dtype cases are present in the original spreadsheet, rows 1711-1720,
+assigned to the requested owner and originally marked unmeasured. A separate
+a01r4n15 card 1 comparison is running; its results are pending here.
 
 See [provider definitions](correction-20261109/provider-definitions.json),
 [full device samples](correction-20261109/device-samples-six-providers.json),
