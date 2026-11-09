@@ -29,7 +29,28 @@ a source-only or compiler-only root cause. The original failure has not been
 reproduced in this isolated environment, and is NOT marked resolved. The exact
 reviewer input, test entry point and environment still need to be matched.
 
-On a01r3n13 visible card 0, the standalone PR #2 source passes 25 focused tests.
+The second correction tunes only spreadsheet rows 20 and 32. Row 20 uses a
+swapped explicit-layout swizzle launch with four warps; row 32 uses the existing
+pipelined two-warp swizzle configuration. Both shapes are added to the
+multi-seed, offset and low-mantissa-bit regressions. On a01r3n13 card 0 this
+source passes **33 focused tests and 30 public-route checks**. The 19 targeted
+spreadsheet cases pass both generated seeds (38 accuracy records). With a new,
+separately recorded 200-call/ROI protocol, rows 20 and 32 reach **91.49% and
+103.52%** DAS/new, with both sides below the 5% A/A guard. Overall, **11/19**
+targeted groups pass this protocol; rows 9, 81, 82, 101, 107, 108, 111 and 114
+remain unstable. These results do not establish acceptance of all 94 targets.
+The separate BF16 fallback control also fails DAS stability and is diagnostic.
+
+See [second-correction status](correction-20261109/phase2-long/status.json),
+[all targeted samples](correction-20261109/phase2-long/device-samples.json),
+[source identity](correction-20261109/phase2-long/source-proof.json) and
+[original spreadsheet mapping](correction-20261109/phase2-long/spreadsheet-scope-audit.json).
+The original FP32 and FP64 review failures remain unresolved. A separate
+a01r4n15 run uses card 0 for full MM revalidation and card 1 for dtype; each
+operator runs on one card. Those results are pending at this publication.
+Formatting, full pre-commit and the required MM static checks pass.
+
+The first-correction source on a01r3n13 visible card 0 passed 25 focused tests.
 Eighteen public `torch.mm` checks cover three seeds and B offsets 0/131072 for
 each former peel case. Every call witnesses one FG export and one explicit-layout
 kernel launch, and checks every output against CPU FP64 at atol=rtol=1e-10.
@@ -41,7 +62,7 @@ The expanded scope run checks all 120 FP32/FP64 spreadsheet cases with seeds
 under the recorded tolerances (FP64 atol=rtol=1e-10; FP32 atol=2e-4, rtol=1e-4).
 These generated inputs do not resolve the reviewer's shared FP32 1-element failure.
 
-Only **75/94** target groups pass both the 90% paired DAS threshold and the
+In that first-correction run, only **75/94** target groups passed both the 90% paired DAS threshold and the
 newly declared 5% A/A guard in the single-compute-unit gate protocol. Rows 20
 and 32 remain below 90%; 17 further rows fail stability for FG and/or DAS. They
 are diagnostic, not accepted speedups. The three replacement configurations

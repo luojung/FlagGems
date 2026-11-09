@@ -74,6 +74,8 @@ def test_hygon_mm_offset_and_both_strides(dtype, seed):
         (1344, 128, 256),
         (2208, 64, 64),
         (576, 128, 128),
+        (2208, 512, 64),
+        (576, 128, 384),
     ],
 )
 def test_hygon_mm_fp64_keeps_low_mantissa_bits(m, n, k):
@@ -86,7 +88,16 @@ def test_hygon_mm_fp64_keeps_low_mantissa_bits(m, n, k):
     torch.testing.assert_close(y, a @ b, rtol=0, atol=0)
 
 
-@pytest.mark.parametrize("m,n,k", [(1344, 128, 256), (2208, 64, 64), (576, 128, 128)])
+@pytest.mark.parametrize(
+    "m,n,k",
+    [
+        (1344, 128, 256),
+        (2208, 64, 64),
+        (576, 128, 128),
+        (2208, 512, 64),
+        (576, 128, 384),
+    ],
+)
 @pytest.mark.parametrize("seed", [1238, 101241, 907])
 def test_hygon_mm_fp64_reported_peel_regression(m, n, k, seed):
     gen = torch.Generator().manual_seed(seed)
