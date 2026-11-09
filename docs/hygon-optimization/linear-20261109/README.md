@@ -1,5 +1,8 @@
 # Linear: fixed-source Hygon forward measurements (2026-11-09)
 
+The [later FP32 continuation](../linear-focused-20261109/README.md) records subsequent measurements and separates performance from correctness for all109 cases. The measurements below remain the historical K1/BF16 increment.
+
+
 This change preserves the earlier metadata-guarded BF16 linear specializations and adds two measured optimizations. It does not declare full-domain accuracy/performance acceptance.
 
 - For FP32 M=K=1 addmm with a vector bias and unit alpha/beta, use a strided vector affine kernel. The old matrix kernel already fused bias; the change avoids matrix tiling/dot setup and LDS. The selected launch uses BLOCK256, four warps and disabled FP fusion.

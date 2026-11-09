@@ -163,6 +163,144 @@ def mm_kernel(
     tl.store(c_ptr, accumulator, mask=mask_store)
 
 
+@libentry()
+@triton.jit
+def mm_fp32_static_kernel(
+    a_ptr,
+    b_ptr,
+    c_ptr,
+    M: tl.constexpr,
+    N: tl.constexpr,
+    K: tl.constexpr,
+    stride_am: tl.constexpr,
+    stride_ak: tl.constexpr,
+    stride_bk: tl.constexpr,
+    stride_bn: tl.constexpr,
+    stride_cm: tl.constexpr,
+    stride_cn: tl.constexpr,
+    BLOCK_M: tl.constexpr,
+    BLOCK_N: tl.constexpr,
+    BLOCK_K: tl.constexpr,
+    GROUP_M: tl.constexpr,
+    IS_FP64: tl.constexpr = False,
+):
+    pid = ext.program_id(0)
+
+    # --------------------------
+    # match naming: num_pid_m, num_pid_n
+    # --------------------------
+    num_pid_m = tl.cdiv(M, BLOCK_M)
+    num_pid_n = tl.cdiv(N, BLOCK_N)
+
+    # reorder for L2
+    num_pid_in_group = GROUP_M * num_pid_n
+    group_id = pid // num_pid_in_group
+    group_size_m = min(num_pid_m - group_id * GROUP_M, GROUP_M)
+
+    pid_m = group_id * GROUP_M + (pid % group_size_m)
+    pid_n = (pid % num_pid_in_group) // group_size_m
+
+    # --------------------------
+    # match naming: offs_am, offs_bn, offs_k
+    # --------------------------
+    offs_am = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+    offs_bn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+    offs_k = tl.arange(0, BLOCK_K)
+
+    # contiguous aligned offsets (ram/rbn → offs_am/offs_bn)
+    offs_am_cont = tl.max_contiguous(tl.multiple_of(offs_am % M, BLOCK_M), BLOCK_M)
+    offs_bn_cont = tl.max_contiguous(tl.multiple_of(offs_bn % N, BLOCK_N), BLOCK_N)
+
+    # previous K multiple
+    # prev_k_mult = prev_multiple_of(K, BLOCK_K)
+    prev_k_mult = tl.cdiv(K, BLOCK_K) * BLOCK_K - BLOCK_K
+
+    # accumulator
+    if IS_FP64:
+        accumulator = tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.float64)
+    else:
+        accumulator = tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.float32)
+
+    # --------------------------
+    # main K loop
+    # --------------------------
+    for start_k in range(0, prev_k_mult, BLOCK_K):
+        rk = start_k + offs_k
+
+        a = tl.load(
+            a_ptr + (offs_am_cont[:, None] * stride_am + rk[None, :] * stride_ak)
+        )
+        b = tl.load(
+            b_ptr + (rk[:, None] * stride_bk + offs_bn_cont[None, :] * stride_bn)
+        )
+
+        if a.dtype != b.dtype:
+            a = a.to(c_ptr.dtype.element_ty)
+            b = b.to(c_ptr.dtype.element_ty)
+
+        if IS_FP64:
+            accumulator += tl.dot(a, b, out_dtype=tl.float64, allow_tf32=False)
+        else:
+            accumulator += tl.dot(a, b, out_dtype=tl.float32, allow_tf32=False)
+
+    # --------------------------
+    # loop peel
+    # --------------------------
+    rk = prev_k_mult + offs_k
+    mask_k = rk < K
+
+    if IS_FP64:
+        a = tl.load(
+            a_ptr + (offs_am_cont[:, None] * stride_am + rk[None, :] * stride_ak),
+            mask=mask_k[None, :],
+            other=0.0,
+        )
+        b = tl.load(
+            b_ptr + (rk[:, None] * stride_bk + offs_bn_cont[None, :] * stride_bn),
+            mask=mask_k[:, None],
+            other=0.0,
+        )
+    else:
+        a = tl.load(
+            a_ptr + (offs_am_cont[:, None] * stride_am + rk[None, :] * stride_ak),
+            mask=mask_k[None, :],
+        )
+        b = tl.load(
+            b_ptr + (rk[:, None] * stride_bk + offs_bn_cont[None, :] * stride_bn),
+            mask=mask_k[:, None],
+        )
+
+    if a.dtype != b.dtype:
+        a = a.to(c_ptr.dtype.element_ty)
+        b = b.to(c_ptr.dtype.element_ty)
+
+    if IS_FP64:
+        accumulator += tl.dot(a, b, out_dtype=tl.float64, allow_tf32=False)
+    else:
+        accumulator += tl.dot(a, b, out_dtype=tl.float32, allow_tf32=False)
+
+    # cast to output dtype
+    accumulator = accumulator.to(c_ptr.dtype.element_ty)
+
+    # --------------------------
+    # rematerialize offsets for store
+    # (match naming: offs_cm, offs_cn)
+    # --------------------------
+    offs_cm = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+    offs_cn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+
+    c_ptr = c_ptr + (offs_cm[:, None] * stride_cm + offs_cn[None, :] * stride_cn)
+    mask_store = (offs_cm < M)[:, None] & (offs_cn < N)[None, :]
+
+    tl.store(c_ptr, accumulator, mask=mask_store)
+
+
+_MM_FP32_STATIC_CONFIGS = {
+    (60000, 512, 1024): (64, 64, 32, 1, 4),
+    (140000, 512, 512): (64, 64, 32, 1, 4),
+}
+
+
 _ordered_datatypes = [torch.float16, torch.bfloat16, torch.float32, torch.float64]
 
 
@@ -526,6 +664,20 @@ def mm(a, b):
                     num_warps=4,
                 )
             return c
+    fp32_config = _MM_FP32_STATIC_CONFIGS.get((M, K, N))
+    if (
+        fp32_config is not None
+        and a.dtype is torch.float32
+        and b.dtype is torch.float32
+        and device == b.device
+        and device.type in ("flagos", "cuda")
+        and a.stride() == (K, 1)
+        and b.stride() == (1, K)
+        and a.storage_offset() == 0
+        and b.storage_offset() == 0
+    ):
+        block_m, block_n, block_k, stages, warps = fp32_config
+        launch_kernel = mm_fp32_static_kernel
     with torch_device_fn.device(a.device):
         launch_kernel[grid](
             a,
