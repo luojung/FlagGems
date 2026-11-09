@@ -76,8 +76,8 @@ See [cross-node classification](correction-20261109/crossnode-r4n15/status.json)
 and [runtime/source proof](correction-20261109/crossnode-r4n15/runtime.json).
 
 See [provider definitions](correction-20261109/provider-definitions.json),
-[full device samples](correction-20261109/device-samples-six-providers.json),
-[status](correction-20261109/revalidation-status.json) and
+[earlier kernel-only samples](correction-20261109/device-samples-six-providers.json),
+[first-correction status](correction-20261109/revalidation-status.json) and
 [source proof](correction-20261109/source-proof.json). Timing conditions differ
 from the user's review table; preserve both records and do not combine their
 absolute timings. Failed stability checks must not produce an accepted speedup.
