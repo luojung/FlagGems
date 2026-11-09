@@ -37,8 +37,8 @@ def sum_short_rows_kernel(
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
 ):
-    rows = tl.program_id(0) * BLOCK_M + tl.arange(0, BLOCK_M)
-    cols = tl.arange(0, BLOCK_N)
+    rows = tl.program_id(0).to(tl.int64) * BLOCK_M + tl.arange(0, BLOCK_M)
+    cols = tl.arange(0, BLOCK_N).to(tl.int64)
     values = tl.load(
         inp + rows[:, None] * ROW_STRIDE + cols[None, :] * COL_STRIDE,
         (rows[:, None] < M) & (cols[None, :] < N),
