@@ -101,6 +101,8 @@ def _load_state_kernel():
         library = ctypes.CDLL(str(binary))
         library.launch_state_flash.argtypes = [ctypes.c_void_p] * 8
         library.launch_state_flash.restype = ctypes.c_int
+        library.launch_short_state_flash.argtypes = [ctypes.c_void_p] * 7
+        library.launch_short_state_flash.restype = ctypes.c_int
         return library
     except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
         logger.warning("gfx936 STATE kernel unavailable; using Triton: %s", exc)
@@ -118,4 +120,18 @@ def launch_state_kernel(q, k, v, norms, flags, out, lse):
     status = library.launch_state_flash(*pointers, ctypes.c_void_p(stream))
     if status:
         raise RuntimeError(f"gfx936 STATE FlashAttention launch failed: HIP {status}")
+    return True
+
+
+def launch_short_state_kernel(q, k, v, flags, out, lse):
+    library = _load_state_kernel()
+    if library is None:
+        return False
+    stream = torch_device_fn.current_stream(q.device).cuda_stream
+    pointers = [ctypes.c_void_p(x.data_ptr()) for x in (q, k, v, flags, out, lse)]
+    status = library.launch_short_state_flash(*pointers, ctypes.c_void_p(stream))
+    if status:
+        raise RuntimeError(
+            f"gfx936 short STATE FlashAttention launch failed: HIP {status}"
+        )
     return True

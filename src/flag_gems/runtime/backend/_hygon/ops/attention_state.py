@@ -18,7 +18,8 @@
 Cauchy bounds select a fixed-shift softmax only when every score is
 within +/-55 in log2 units. The resulting exponent range stays normal
 in BF16. Large-norm tiles use stable online softmax with a high/low
-BF16 probability decomposition. No input values are assumed.
+BF16 probability decomposition. A value-magnitude guard also selects stable
+recomputation when BF16 probability rounding would be amplified by large V.
 """
 
 import math
@@ -29,6 +30,7 @@ import triton.language as tl
 
 from flag_gems.runtime.backend._hygon.attention_state_hip import (
     _load_state_kernel,
+    launch_short_state_kernel,
     launch_state_kernel,
 )
 
@@ -36,6 +38,7 @@ from flag_gems.runtime.backend._hygon.attention_state_hip import (
 @triton.jit
 def _state_key_norms(
     K,
+    V,
     T,
     B: tl.constexpr,
     H: tl.constexpr,
@@ -54,6 +57,13 @@ def _state_key_norms(
         K + b * KB + h * KH + r[:, None] * KS + d[None, :], r[:, None] < N, 0
     ).to(tl.float32)
     n = tl.max(tl.sum(k * k, 1), 0)
+    v = tl.load(
+        V + b * KB + h * KH + r[:, None] * KS + d[None, :], r[:, None] < N, 0
+    ).to(tl.float32)
+    # Large V amplifies rounding of the fast path's single BF16 probability.
+    # Mark this head unsafe; the stable path uses high/low probabilities.
+    vmax = tl.max(tl.max(tl.abs(v), 1), 0)
+    n = tl.where(vmax <= 8.0, n, float("inf"))
     tl.store(T + (b * H + h) * triton.cdiv(N, BLOCK) + tl.program_id(0), n)
 
 
@@ -199,6 +209,8 @@ def _state_fast(
     )
     qf = q.to(tl.float32)
     shift = tl.sqrt(tl.sum(qf * qf, 1) * kmax) * tl.abs(SCALE) * 1.00001
+    finite = (shift.to(tl.uint32, bitcast=True) & 0x7F800000) != 0x7F800000
+    shift = tl.where(finite, shift, float("inf"))
     # Bound both signs: no online rescaling or per-step row reduction.
     good = tl.max(shift, 0) <= 55.0
     tl.store(F + (pb * H + ph) * triton.cdiv(M, BM) + pm, good)
@@ -285,11 +297,15 @@ def _state_stable(
     GUARD: tl.constexpr,
     BM: tl.constexpr,
     BN: tl.constexpr,
+    CHECK_GUARD: tl.constexpr = True,
 ):
     pm = tl.program_id(0)
     ph = tl.program_id(1)
     pb = tl.program_id(2)
-    good = tl.load(F + (pb * H + ph) * triton.cdiv(M, GUARD) + pm * BM // GUARD)
+    if CHECK_GUARD:
+        good = tl.load(F + (pb * H + ph) * triton.cdiv(M, GUARD) + pm * BM // GUARD)
+    else:
+        good = 0
     if good == 0:
         r = pm * BM + tl.arange(0, BM)
         d = tl.arange(0, D)
@@ -333,7 +349,7 @@ def state_attention(q, k, v, scale):
     tmp = torch.empty((b, h, triton.cdiv(n, 128)), device=q.device, dtype=torch.float32)
     flag = torch.empty((b, h, triton.cdiv(m, bm)), device=q.device, dtype=torch.uint8)
     _state_key_norms[(triton.cdiv(n, 128), h, b)](
-        k, tmp, b, h, n, d, *k.stride()[:3], 128, num_warps=8
+        k, v, tmp, b, h, n, d, *k.stride()[:3], 128, num_warps=16
     )
     arg = (
         *q.stride()[:3],
@@ -369,5 +385,51 @@ def state_attention(q, k, v, scale):
         )
     _state_stable[(triton.cdiv(m, 64), h, b)](
         q, k, v, flag, out, lse, *arg, bm, 64, 32, num_warps=4, num_stages=1
+    )
+    return out, lse
+
+
+def small_state_attention(q, k, v, scale):
+    """Short worksheet cases; every path has a stable high/low fallback."""
+    b, h, m, d = q.shape
+    n = k.shape[2]
+    out = torch.empty((b, h, m, d), device=q.device, dtype=q.dtype)
+    lse = torch.empty((b, h, m), device=q.device, dtype=torch.float32)
+    bm, bn = (16, 16) if n == 3 else (16, 32) if n == 23 else (32, 64)
+    arg = (
+        *q.stride()[:3],
+        *k.stride()[:3],
+        *v.stride()[:3],
+        *out.stride()[:3],
+        h,
+        m,
+        n,
+        d,
+        scale * 1.4426950408889634,
+    )
+    if (
+        n == 362
+        and scale in (128**-0.5, 1.0 / math.sqrt(128))
+        and _load_state_kernel() is not None
+    ):
+        flag = torch.empty(
+            (b, h, triton.cdiv(m, 192)), device=q.device, dtype=torch.uint8
+        )
+        launch_short_state_kernel(q, k, v, flag, out, lse)
+        return out, lse
+    _state_stable[(triton.cdiv(m, bm), h, b)](
+        q,
+        k,
+        v,
+        q,
+        out,
+        lse,
+        *arg,
+        bm,
+        bm,
+        bn,
+        CHECK_GUARD=False,
+        num_warps=4,
+        num_stages=1,
     )
     return out, lse
