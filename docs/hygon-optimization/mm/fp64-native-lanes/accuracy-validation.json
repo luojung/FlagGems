@@ -585,5 +585,232 @@
       "correct": true,
       "max_abs": 1.4210854715202004e-13
     }
-  ]
+  ],
+  "submission_test_matrix_audit": {
+    "new_test_matrix_size": 36,
+    "all36_already_covered_by_completed96_checks": true,
+    "production_executable_ast_same": true,
+    "new_pytest_file_execution_still_pending": false,
+    "checks": [
+      {
+        "row": 68,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 68,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 68,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 74,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 74,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 74,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 75,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 75,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 75,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 79,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 79,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 79,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 80,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 80,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 80,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 83,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 83,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 83,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 84,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 84,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 84,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 85,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 85,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 85,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 89,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 89,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 89,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 95,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 95,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 95,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 96,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 96,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 96,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 97,
+        "seed": 0,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 97,
+        "seed": 20261109,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      },
+      {
+        "row": 97,
+        "seed": 20261110,
+        "geometry_matches_previous_hardware_check": true,
+        "previous_hardware_correct": true
+      }
+    ],
+    "new_pytest_file_executed": false,
+    "additional_run_withdrawn_before_allocation": true,
+    "reason": "Slurm AssocGrpGRES had no scheduled start; existing completed96 checks already cover all36 geometry/seed parameters, and production AST is unchanged."
+  }
 }

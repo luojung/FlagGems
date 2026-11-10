@@ -31,3 +31,9 @@ Raw per-sample values, all provider correctness flags, kernel names and A/A drif
 ## 底层运行逻辑与原理分析
 
 CPU full backing -> native-stride/offset views -> one device migration -> eager/no_grad public `aten::mm.default` -> PrivateUse1/Torch-FL private mm routing -> Hygon `mm.py` and configuration -> repaired swizzle/coopfast load -> FP64 `v_mmac_16x16x4_f64` -> existing output store -> full CPU comparison. No Dynamo/Inductor fusion is involved. Compilation, transfers, reference computation, warmup and the queue gate are outside the primary kernel-duration boundary. Original and repaired trace/source witnesses distinguish route selection from kernel arithmetic. The narrow responsibility boundary is the vendor-specific FP64 operand-loading/prefetch implementation under this compiler; dispatcher and reference tolerance are unchanged.
+
+## Submission checks (2026-11-10)
+
+All changed-file pre-commit hooks and the four repository MM metadata/export/marker/ATen checks pass. Full-repository hooks were attempted: 30 existing E226 f-string whitespace errors remain in unmodified PR2 files; each offending line was verified against the base commit. The corresponding whitespace in the two touched kernels is corrected without changing their executable AST.
+
+The new test matrix's 36 geometry/seed combinations were checked against the completed 96 hardware comparisons: all are covered and passed there. A separate execution of the new pytest file was queued, but Slurm reported AssocGrpGRES with no start time. That redundant job was withdrawn before allocation (zero GPU time). The new pytest entrypoint was therefore **not separately executed**; this submission relies on the completed hardware results and does not claim a fresh 36-test pytest pass. The matrix audit is included in accuracy-validation.json.
