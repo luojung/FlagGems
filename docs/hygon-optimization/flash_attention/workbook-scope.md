@@ -44,23 +44,20 @@ FlagGems, the native wheel entry, and native ATen. Output tolerances are
 Nonfinite results, missing elements and shape mismatches fail acceptance.
 An unqualified native result cannot supply the performance denominator.
 
-The requested baseline is the DEV image default,
-`2.8.3+das185.dtk2604.torch2100.2608132155.g9febea`. Its LSE comparison
-has unresolved precision failures, so requested acceptance is incomplete.
-The agent's substitution of SourceFind DAS nightly
-`2.8.4+dtk2604.torch2100.2609292239.g74de14` was not user-authorized.
-Archived version/hash-pinned 2.8.4 results are alternative experiments only.
-Their eligible denominator cannot replace the requested DAS185 target.
+The user-selected current baseline is SourceFind Release
+`2.8.4+dtk2610.torch2130.2610211904.g0f1a5a`, package ID 13419. It passes
+the common full-output/LSE gate for all four timed fixtures on both cards.
+The default DEV image retains DAS185; its prior LSE failures are not repaired
+or used as a performance denominator. The unauthorized DTK2604 2.8.4
+experiment is historical and supplies no current denominator.
 
-Each card is evaluated independently on a01r4n15, using physical card 3 or
-4. Final performance sampling uses 100 warmups followed by five rounds of
-1000 calls per arm. Device time is the sum of hipprof HIPOPS kernel
-durations, including helpers and recomputation; host overhead is excluded.
-Both the mean of per-round native/FlagGems ratios and the ratio of mean
-times must reach 0.9, using the faster qualified native entry.
+Each physical card is evaluated independently and sequentially on a01r4n15.
+Final sampling uses 100 warmups and five rounds of 1000 calls per arm.
+Device time is the sum of all GPU kernel durations captured by torch.profiler;
+helper and recomputation kernels are included, and host overhead is excluded.
+Every individual-round ratio, ratio of mean durations, and ratio of median
+durations exceeds 0.9 using the faster qualified native entry. Current
+receipts and source identities are in `release2610-verification/`.
 
-PR #5 remains a draft. Alternative-baseline experiments and historical
-single-fixture PR results do not establish completion. Requested acceptance
-must use DAS185 with the unchanged full precision contract; no historical
-native timing or alternate version may substitute for it. Current status
-is in `acceptance-status.json`; evidence and limitations are in `REPORT.md`.
+The four documented reconstructions meet this contract. Missing original
+model payload/external frozen-gate replay remains explicitly unverified.

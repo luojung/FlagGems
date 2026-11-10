@@ -348,8 +348,19 @@ def state_attention(q, k, v, scale):
     lse = torch.empty((b, h, m), device=q.device, dtype=torch.float32)
     tmp = torch.empty((b, h, triton.cdiv(n, 128)), device=q.device, dtype=torch.float32)
     flag = torch.empty((b, h, triton.cdiv(m, bm)), device=q.device, dtype=torch.uint8)
+    # DTK clang-18 does not implement Triton's optional -fp-fuse=fast switch.
     _state_key_norms[(triton.cdiv(n, 128), h, b)](
-        k, v, tmp, b, h, n, d, *k.stride()[:3], 128, num_warps=16
+        k,
+        v,
+        tmp,
+        b,
+        h,
+        n,
+        d,
+        *k.stride()[:3],
+        128,
+        enable_fp_fusion=False,
+        num_warps=16,
     )
     arg = (
         *q.stride()[:3],
@@ -379,12 +390,25 @@ def state_attention(q, k, v, scale):
             pre,
             s,
             red,
+            enable_fp_fusion=False,
             num_warps=w,
             num_stages=s,
             waves_per_eu=2,
         )
     _state_stable[(triton.cdiv(m, 64), h, b)](
-        q, k, v, flag, out, lse, *arg, bm, 64, 32, num_warps=4, num_stages=1
+        q,
+        k,
+        v,
+        flag,
+        out,
+        lse,
+        *arg,
+        bm,
+        64,
+        32,
+        enable_fp_fusion=False,
+        num_warps=4,
+        num_stages=1,
     )
     return out, lse
 
@@ -429,6 +453,7 @@ def small_state_attention(q, k, v, scale):
         bm,
         bn,
         CHECK_GUARD=False,
+        enable_fp_fusion=False,
         num_warps=4,
         num_stages=1,
     )
