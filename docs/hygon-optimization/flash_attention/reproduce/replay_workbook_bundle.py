@@ -1,4 +1,4 @@
-"""Verify current source identities and recompute every archived worksheet ratio."""
+"""Verify the archived alternative-baseline experiment, not DAS185 acceptance."""
 
 import gzip
 import hashlib
@@ -121,5 +121,9 @@ for card in ("3", "4"):
     if actual["device"] != {"node": "a01r4n15", "physical_card": card}:
         raise ValueError("Results belong to another physical card")
     require_stability(folder, card, inventory["source_sha256"])
-    print("FOUR_WORKSHEET_CASES_VERIFIED", card)
+    print("ALTERNATIVE_DAS_2_8_4_EXPERIMENT_VERIFIED", card)
 print("Original model payload and external frozen gate remain unverified.")
+
+print(
+    "REQUESTED_DAS185_ACCEPTANCE_NOT_ESTABLISHED; alternative baseline was not authorized."
+)

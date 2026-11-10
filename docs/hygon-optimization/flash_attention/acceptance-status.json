@@ -1,0 +1,16 @@
+{
+  "requested_native_version": "2.8.3+das185.dtk2604.torch2100.2608132155.g9febea",
+  "default_image_native_version": "2.8.3+das185.dtk2604.torch2100.2608132155.g9febea",
+  "requested_acceptance_established": false,
+  "performance_vs_requested_baseline_verified": false,
+  "reason": "DAS185 full-LSE comparison remains unresolved under the unchanged precision gate.",
+  "alternative_version": "2.8.4+dtk2604.torch2100.2609292239.g74de14",
+  "alternative_baseline_user_authorized": false,
+  "alternative_results_establish_requested_completion": false,
+  "operator_precision_stability_passed_on_documented_reconstructions": true,
+  "original_model_acceptance_verified": false,
+  "external_frozen_gate_verified": false,
+  "pr_number": 5,
+  "pr_draft": true,
+  "previous_completion_claim": "withdrawn"
+}

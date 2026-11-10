@@ -44,10 +44,13 @@ FlagGems, the native wheel entry, and native ATen. Output tolerances are
 Nonfinite results, missing elements and shape mismatches fail acceptance.
 An unqualified native result cannot supply the performance denominator.
 
-Native package identities and loaded libraries are pinned by version and
-SHA256. The original DAS185 package remains numerically unqualified;
-the tested alternative is SourceFind's DAS nightly
-`2.8.4+dtk2604.torch2100.2609292239.g74de14`.
+The requested baseline is the DEV image default,
+`2.8.3+das185.dtk2604.torch2100.2608132155.g9febea`. Its LSE comparison
+has unresolved precision failures, so requested acceptance is incomplete.
+The agent's substitution of SourceFind DAS nightly
+`2.8.4+dtk2604.torch2100.2609292239.g74de14` was not user-authorized.
+Archived version/hash-pinned 2.8.4 results are alternative experiments only.
+Their eligible denominator cannot replace the requested DAS185 target.
 
 Each card is evaluated independently on a01r4n15, using physical card 3 or
 4. Final performance sampling uses 100 warmups followed by five rounds of
@@ -56,7 +59,8 @@ durations, including helpers and recomputation; host overhead is excluded.
 Both the mean of per-round native/FlagGems ratios and the ratio of mean
 times must reach 0.9, using the faster qualified native entry.
 
-Exploratory configuration searches and old single-fixture PR results are
-not final four-row acceptance results. The final four-case results and source-bound evidence are in `REPORT.md`
-and `workbook-verification/`; original-payload and external-gate limitations
-continue to apply.
+PR #5 remains a draft. Alternative-baseline experiments and historical
+single-fixture PR results do not establish completion. Requested acceptance
+must use DAS185 with the unchanged full precision contract; no historical
+native timing or alternate version may substitute for it. Current status
+is in `acceptance-status.json`; evidence and limitations are in `REPORT.md`.

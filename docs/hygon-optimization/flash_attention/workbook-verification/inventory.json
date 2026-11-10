@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "scope": "Four worksheet metadata reconstructions; original payload and external frozen gate not replayed",
+  "scope": "Archived alternative DAS 2.8.4 experiment; substitution was not user-authorized and does not establish requested DAS185 acceptance.",
   "workbook_sha256": "d2596052c66d7145af47b35fda45198d1f213b69825aeb91d10112dfd8871597",
   "source_sha256": {
     "src/flag_gems/runtime/backend/_hygon/attention_state_hip.py": "185460a1f7a25f27ba55202cf42f35fef5a10fda845b527c3058b5b9b88f12d4",
@@ -21,8 +21,8 @@
     "docs/hygon-optimization/flash_attention/reproduce/archive_workbook_trace.py": "b7056c586b2133235455e7ddedf7decb998fdb5b3808bcc7df554983d48c5730",
     "docs/hygon-optimization/flash_attention/reproduce/validate_edge_cases.py": "a9b11ad65100c1cff6d4525f270caecfa7988c0346aca12d598350d4a8b95a58",
     "docs/hygon-optimization/flash_attention/reproduce/validate_workbook_stability.py": "a30506e69546c7f2d8229a6e6c382932e60cad1571f96d81edeb0400cc7fea08",
-    "docs/hygon-optimization/flash_attention/reproduce/replay_workbook_bundle.py": "ddff1435309e6388e6c678e04698c63ce61a509b00aed92dc9469a3d30e26481",
-    "docs/hygon-optimization/flash_attention/reproduce/run_workbook.sh": "d7b2ff8e791f4094b34b621fedc79293813339deb4292a2690d0824256d26155"
+    "docs/hygon-optimization/flash_attention/reproduce/replay_workbook_bundle.py": "6b0169f71bc62883c2862a9abdd7df1c5e9912a592994ecde312ec94f80396cb",
+    "docs/hygon-optimization/flash_attention/reproduce/run_workbook.sh": "d5344bb05efb7843db99bbfb2a0786c96d633819b43387a05e6667a8dccf98c4"
   },
   "evidence_sha256": {
     "cpu-tests.log": "8ea79f65b71f4fdcfbf3956c479cca8064430ae7549250fecff04c316426abca",

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Archived alternative DAS 2.8.4 experiment; does not establish requested DAS185 acceptance.
 # Run on the allocated compute node; repeat sequentially for cards 3 and 4.
 set -euo pipefail
 repo=$(realpath "$1")

@@ -1,12 +1,13 @@
-# Four worksheet cases: final metadata-reconstruction acceptance
+# Four worksheet cases: requested acceptance incomplete
 
-All four documented worksheet reconstructions pass the full common
-output/LSE gate and exceed 90% of the pinned eligible DAS nightly baseline
-on physical cards 3 and 4 independently. The final source, evidence and
-reproduction commands are indexed in [REPORT.md](REPORT.md) and
-`workbook-verification/inventory.json`.
+The requested baseline is DAS185, the DEV image default. Its full-LSE
+comparison remains unresolved, so no valid >=90% acceptance against that
+baseline is established. The user did not authorize substituting DAS 2.8.4.
+The earlier completed-task claim is withdrawn and PR #5 is a draft.
 
-Earlier safe-shift measurements (including the N=362 80.75% result) and
-exploratory candidates are intermediate results, superseded by this final
-source-bound verification. DAS185 remains ineligible. Original model
-payload and external frozen-gate replay remain unverified.
+Current FlagGems precision/stability checks pass on the documented rebuilt
+inputs. The archived DAS 2.8.4 measurements are alternative experiments only;
+they do not establish completion of the requested task. Existing evidence
+is preserved in `workbook-verification/`. See `REPORT.md` and
+`acceptance-status.json`. Original payload/external frozen-gate replay
+remain unverified.
