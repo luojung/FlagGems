@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+from pathlib import Path
+
 import pytest
 import torch
 
@@ -23,6 +26,53 @@ pytestmark = [
         flag_gems.vendor_name != "hygon", reason="Hygon GEMM regression coverage"
     ),
 ]
+
+_DOCS = Path(__file__).resolve().parents[1] / "docs/hygon-optimization/mm"
+_TARGET_ROWS = {
+    case["row"]
+    for case in json.loads((_DOCS / "cases.json").read_text(encoding="utf-8"))
+}
+_CONTROL_CASES = [
+    case
+    for case in json.loads((_DOCS / "all-mm-cases.json").read_text(encoding="utf-8"))
+    if case["row"] not in _TARGET_ROWS
+]
+
+
+@pytest.mark.parametrize("case", _CONTROL_CASES, ids=lambda case: str(case["row"]))
+@pytest.mark.parametrize("seed", [100003, 880301])
+def test_hygon_mm_spreadsheet_controls_public(case, seed):
+    operands = []
+    cpu_operands = []
+    for index, meta in enumerate(case["metadata"][0]):
+        dtype = getattr(torch, meta["dtype"].split(".")[-1])
+        offset = meta.get("storage_offset", 0)
+        size = (
+            offset
+            + 1
+            + sum((n - 1) * stride for n, stride in zip(meta["shape"], meta["stride"]))
+        )
+        generator = torch.Generator().manual_seed(seed + case["row"] * 2 + index)
+        storage = torch.randn(size, dtype=dtype, generator=generator)
+        cpu_operands.append(storage.as_strided(meta["shape"], meta["stride"], offset))
+        operand = storage.to(flag_gems.device).as_strided(
+            meta["shape"], meta["stride"], offset
+        )
+        operand.requires_grad_(meta.get("requires_grad", False))
+        operands.append(operand)
+    reference = cpu_operands[0].double() @ cpu_operands[1].double()
+    dtype = operands[0].dtype
+    if dtype == torch.bfloat16:
+        reference = reference.to(dtype).double()
+        atol, rtol = 1e-5, 0.016
+    elif dtype == torch.float64:
+        atol, rtol = 1e-10, 1e-10
+    else:
+        atol, rtol = 2e-4, 1e-4
+    with flag_gems.use_gems(include=["mm"]):
+        output = torch.mm(*operands)
+    assert output.dtype == dtype and output.device == operands[0].device
+    torch.testing.assert_close(output.cpu().double(), reference, atol=atol, rtol=rtol)
 
 
 @pytest.mark.parametrize("seed", [880301, 7, 101])
@@ -91,6 +141,10 @@ def test_hygon_mm_offset_and_both_strides(dtype, seed):
         (576, 128, 128),
         (2208, 512, 64),
         (576, 128, 384),
+        (1344, 128, 128),
+        (192, 2944, 89),
+        (192, 512, 89),
+        (960, 128, 384),
     ],
 )
 def test_hygon_mm_fp64_keeps_low_mantissa_bits(m, n, k):

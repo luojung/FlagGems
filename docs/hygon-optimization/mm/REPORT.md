@@ -1,4 +1,85 @@
-# aten::mm: review blocks acceptance
+# aten::mm: candidate passes reconstructed-metadata acceptance
+
+
+## 2026-11-11 final candidate check
+
+The candidate passes all **197 MM rows** in the two requested workbook sheets
+and preserves the previously qualified **179 records**, including added controls.
+The minimum workbook DAS/new FG ratio is **90.1874%**. Each measurement uses
+one isolated physical GPU; host overhead is excluded.
+
+Fresh work was partitioned across three devices. FP64 `[1344,256] @ [256,128]`
+passes at B offsets 0 and 131072, with identical logical values and DAS/new
+**95.2640% / 95.4410%**. The FP32 transposed-B case passes at **110.2377%** and
+the BF16 control at **110.2719%**. Both DAS and new FG pass the 5% A/A guard.
+The first unstable FP32 capture is retained; the accepted capture prewarms all
+providers before all three timed blocks. No observations are dropped.
+
+The current source passes **410 pytest cases** plus **48 distinct precision
+stress cases**. No selected configuration uses the reported `mm_mmac_peel` path.
+All device kernels and copies, including allocator initialization copies, count
+in the metric. Two independent analyzers and a fresh CPU read of all 225 native
+ROIs agree. The source and complete workbook mapping are checked against the
+candidate, and earlier evidence is used only where routes and device kernels
+are preserved or replaced by a newer accepted capture.
+
+See [final candidate evidence and limitations](recheck-20261111/README.md) and
+run `python docs/hygon-optimization/mm/recheck-20261111/verify_evidence.py`.
+
+**Scope limitation:** original reviewer tensors were not supplied and were not
+replayed. The candidate bypasses the reported path and passes reconstructed
+metadata and regression tests; it does not claim reproduction or root-cause
+resolution of the original report, or whole-model acceptance. PR #2 stays Draft
+for external review. The dated historical holds and failures below are preserved
+as historical records; the candidate check above does not rewrite them.
+
+## Historical evidence (superseded candidate status)
+
+## 2026-11-10 workbook scope extension: metadata reconstruction checks passed
+
+All 197 workbook MM rows pass the current reconstructed-input numerical, device
+performance, and A/A checks: 98 model-workload rows and 99 scale-extension rows.
+The minimum DAS/new FG ratio is 90.19%. Measurements sum all device kernels
+and copies; host submission and queue gates are excluded. Each process sees one
+physical GPU. Both providers require A/A drift <=5%.
+
+The final FP32 `[905,1159] @ [1159,1159]` input now uses an IEEE FP32
+global/LDS/MMAC pipeline. Physical GPU 0 records 68.92984 / 74.63149 us
+(DAS/new FG = 92.36%); physical GPU 1 records 69.02212 / 74.55875 us (92.57%).
+Both captures pass numerical and stability checks independently. Two-GPU
+aggregate throughput is never used as an operator measurement.
+
+The v16 candidate retains 175 exact launch keys. Relative to v14, two FP32
+configurations differ; the other 173 configurations and all earlier kernel
+sources are unchanged. Relative to v15, only the strided FP32 launch config
+changes: K tile 16 and unroll 4. The dispatcher and all kernels are byte-identical.
+The two v14 K=1 FP64 streaming-store revisions remain qualified. The candidate
+passes 410 numerical tests on each physical card, including 40 new native FP32
+precision and boundary regressions. Four required static operator checks, full pre-commit, and explicit checks
+of all new files pass.
+
+The corrected strided FP32 `[10114,104] @ [104,207]` input passes on both cards:
+
+- Physical GPU 0: DAS 23.53874 us / new FG 24.75749 us = 95.08%; DAS A/A 0.84%, new A/A 0.29%.
+- Physical GPU 1: DAS 23.63375 us / new FG 24.71250 us = 95.63%; DAS A/A 0.35%, new A/A 0.41%.
+
+The prior 89.27% cross-card failure remains in the evidence.
+
+Portable evidence covers all rows and preserves historical failures:
+`extended-20261110/verify_evidence.py` recomputes medians, A/A drift, per-ROI
+kernel/copy sums, source hashes, and route preservation using only the CPU.
+Canonical source comparisons use LF newlines; raw capture hashes remain recorded.
+
+The exact original reviewer tensors remain unavailable. Reconstruction tests do
+not establish original-input replay or whole-model acceptance. PR #2 remains
+Draft and the combined submission gate remains false. The historical sections
+below retain their original scope and limitations.
+
+<!-- current-submission-r4n15 -->
+Current known-scope review: [179 records, compact observations and independent verifier](correction-20261109/submission-r4n15/README.md).
+Overall submission remains blocked; the original MM review failures are not closed.
+The expanded reconstructed-input performance checks above are complete; original-operand acceptance remains unverified.
+The historical review and separately recorded phases follow below.
 
 PR #2 is a draft. The previous claim that all target cases were accepted is
 withdrawn. Historical traces and test counts do not establish current correctness

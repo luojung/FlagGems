@@ -258,7 +258,26 @@ def mm(a, b):
     kind = cfg["kind"]
     with torch_device_fn.device(a.device):
         common = (a, b, c, m, n, k, *a.stride(), *b.stride())
-        if kind == "small":
+        if kind == "outer":
+            if k != 1:
+                return _mm_default(a, b)
+            from .mm_outer_kernels import outer_product
+
+            rows, cols = cfg["rows"], cfg["cols"]
+            outer_product[(triton.cdiv(m, rows), triton.cdiv(n, cols))](
+                a,
+                b,
+                c,
+                m,
+                n,
+                a.stride(0),
+                b.stride(1),
+                ROWS=rows,
+                COLS=cols,
+                STORE=cfg.get("store", ""),
+                num_warps=cfg["warps"],
+            )
+        elif kind == "small":
             block = cfg["block"]
             small_k[(triton.cdiv(m * n, block),)](
                 *common, BLOCK=block, num_warps=cfg["warps"], num_stages=1
@@ -271,6 +290,39 @@ def mm(a, b):
                 RK=triton.next_power_of_2(k),
                 num_warps=cfg["warps"],
                 num_stages=1,
+            )
+        elif kind == "cache3":
+            from .mm_cache_kernels import tiled_cached
+
+            bm, bn, bk = cfg["bm"], cfg["bn"], cfg["bk"]
+            swap = cfg.get("swap", False)
+            if swap:
+                aa, bb = b, a
+                gm, gn = n, m
+                strides = (b.stride(1), b.stride(0), a.stride(1), a.stride(0))
+            else:
+                aa, bb = a, b
+                gm, gn = m, n
+                strides = (*a.stride(), *b.stride())
+            tiled_cached[(triton.cdiv(gm, bm), triton.cdiv(gn, bn))](
+                aa,
+                bb,
+                c,
+                gm,
+                gn,
+                k,
+                *strides,
+                BM=bm,
+                BN=bn,
+                BK=bk,
+                UNROLL=cfg["unroll"],
+                TAIL=cfg["tail"],
+                TRANS=swap,
+                num_warps=cfg["warps"],
+                num_stages=cfg["stages"],
+                async_copy_use_single_buffer=False,
+                LOAD=cfg.get("load", ""),
+                STORE=cfg.get("store", ""),
             )
         elif kind in ("fast3", "swap32"):
             bm, bn, bk = cfg["bm"], cfg["bn"], cfg["bk"]
@@ -300,6 +352,7 @@ def mm(a, b):
                 num_warps=cfg["warps"],
                 num_stages=cfg["stages"],
                 async_copy_use_single_buffer=False,
+                **cfg.get("launch_options", {}),
             )
         elif kind == "fasttile":
             bm, bn, bk = cfg["bm"], cfg["bn"], cfg["bk"]
@@ -324,6 +377,198 @@ def mm(a, b):
                 SPLIT=1,
                 UNROLL=cfg["unroll"],
                 num_warps=cfg["warps"],
+                num_stages=1,
+            )
+        elif kind == "fast_split":
+            from .mm_fast_split_kernels import tiled_fast_split
+
+            bm, bn, bk = cfg["bm"], cfg["bn"], cfg["bk"]
+            split = cfg["split"]
+            swap = cfg.get("swap", False)
+            if swap:
+                aa, bb = b, a
+                gm, gn = n, m
+                strides = (b.stride(1), b.stride(0), a.stride(1), a.stride(0))
+            else:
+                aa, bb = a, b
+                gm, gn = m, n
+                strides = (*a.stride(), *b.stride())
+            partial = torch.empty((split, m, n), device=a.device, dtype=a.dtype)
+            tiled_fast_split[(triton.cdiv(gm, bm) * triton.cdiv(gn, bn), split)](
+                aa,
+                bb,
+                partial,
+                gm,
+                gn,
+                k,
+                *strides,
+                BM=bm,
+                BN=bn,
+                BK=bk,
+                GROUP=cfg.get("group", 8),
+                SPLIT=split,
+                TRANS=swap,
+                num_warps=cfg["warps"],
+                num_stages=cfg["stages"],
+                async_copy_use_single_buffer=False,
+                **cfg.get("launch_options", {}),
+            )
+            split_reduce[(triton.cdiv(m * n, 1024),)](
+                partial, c, m * n, split, 1024, num_warps=4
+            )
+        elif kind == "swizzle_split":
+            if triton.runtime.driver.active.get_current_target().arch != "gfx936":
+                return _mm_default(a, b)
+            from .mm_split_kernels import swizzle_split
+
+            tm, tn, wm, warps = cfg["tm"], cfg["tn"], cfg["wm"], cfg["warps"]
+            split = cfg["split"]
+            partial = torch.empty((split, m, n), device=a.device, dtype=a.dtype)
+            swizzle_split[
+                (
+                    triton.cdiv(m, 16 * tm * wm),
+                    triton.cdiv(n, 16 * tn * (warps // wm)),
+                    split,
+                )
+            ](
+                a,
+                b,
+                partial,
+                m,
+                n,
+                k,
+                *a.stride(),
+                *b.stride(),
+                WARPS=warps,
+                WM=wm,
+                TM=tm,
+                TN=tn,
+                PREFETCH=cfg["prefetch"],
+                SPLIT=split,
+                num_warps=warps,
+                num_stages=1,
+            )
+            split_reduce[(triton.cdiv(m * n, 256),)](
+                partial, c, m * n, split, 256, num_warps=4
+            )
+        elif kind == "bank_tail":
+            if triton.runtime.driver.active.get_current_target().arch != "gfx936":
+                return _mm_default(a, b)
+            from .mm_bank_tail_kernels import mmac_banked_tail
+
+            tm, tn, wm, warps = cfg["tm"], cfg["tn"], cfg["wm"], cfg["warps"]
+            swap = cfg.get("swap", False)
+            if swap:
+                aa, bb = b, a
+                gm, gn = n, m
+                strides = (b.stride(1), b.stride(0), a.stride(1), a.stride(0))
+            else:
+                aa, bb = a, b
+                gm, gn = m, n
+                strides = (*a.stride(), *b.stride())
+            mmac_banked_tail[
+                (
+                    triton.cdiv(gm, 16 * tm * wm),
+                    triton.cdiv(gn, 16 * tn * (warps // wm)),
+                )
+            ](
+                aa,
+                bb,
+                c,
+                gm,
+                gn,
+                k,
+                *strides,
+                WARPS=warps,
+                WM=wm,
+                TM=tm,
+                TN=tn,
+                PREFETCH=cfg["prefetch"],
+                GROUP=cfg["group"],
+                PIPE=cfg["pipe"],
+                SWIZZLE=True,
+                TRANS=swap,
+                SA_VEC=cfg["sa_vec"],
+                SA_MAX=cfg["sa_max"],
+                SB_VEC=cfg["sb_vec"],
+                SB_MAX=cfg["sb_max"],
+                SA_PER=cfg["sa_per"],
+                SB_PER=cfg["sb_per"],
+                num_warps=warps,
+                num_stages=1,
+                **cfg.get("launch_options", {}),
+            )
+        elif kind == "banked":
+            if triton.runtime.driver.active.get_current_target().arch != "gfx936":
+                return _mm_default(a, b)
+            from .mm_bank_kernels import mmac_banked
+
+            tm, tn, wm, warps = cfg["tm"], cfg["tn"], cfg["wm"], cfg["warps"]
+            swap = cfg.get("swap", False)
+            if swap:
+                aa, bb = b, a
+                gm, gn = n, m
+                strides = (b.stride(1), b.stride(0), a.stride(1), a.stride(0))
+            else:
+                aa, bb = a, b
+                gm, gn = m, n
+                strides = (*a.stride(), *b.stride())
+            mmac_banked[
+                (
+                    triton.cdiv(gm, 16 * tm * wm),
+                    triton.cdiv(gn, 16 * tn * (warps // wm)),
+                )
+            ](
+                aa,
+                bb,
+                c,
+                gm,
+                gn,
+                k,
+                *strides,
+                WARPS=warps,
+                WM=wm,
+                TM=tm,
+                TN=tn,
+                PREFETCH=cfg["prefetch"],
+                GROUP=cfg["group"],
+                PIPE=cfg["pipe"],
+                SWIZZLE=True,
+                TRANS=swap,
+                SA_VEC=cfg["sa_vec"],
+                SA_MAX=cfg["sa_max"],
+                SB_VEC=cfg["sb_vec"],
+                SB_MAX=cfg["sb_max"],
+                num_warps=warps,
+                num_stages=1,
+                **cfg.get("launch_options", {}),
+            )
+        elif kind == "native_fp32":
+            if triton.runtime.driver.active.get_current_target().arch != "gfx936":
+                return _mm_default(a, b)
+            from .mm_native_fp32_kernels import mmac_tiled
+
+            mmac_tiled[(triton.cdiv(n, 128), triton.cdiv(m, 64))](
+                b,
+                a,
+                c,
+                n,
+                m,
+                k,
+                b.stride(1),
+                b.stride(0),
+                a.stride(1),
+                a.stride(0),
+                WARPS=4,
+                WM=4,
+                TM=2,
+                TN=4,
+                PREFETCH=2,
+                GROUP=cfg["group"],
+                PIPE=True,
+                SWIZZLE=False,
+                TRANS=True,
+                num_warps=4,
                 num_stages=1,
             )
         elif kind == "swizzle":
