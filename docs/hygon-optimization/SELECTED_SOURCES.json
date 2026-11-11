@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "formatting": "Apache header, Black 26.5.1, lint-only comments and docstring wrapping. Executable AST equivalence verified excluding docstrings/comments; no import reordering or algorithm edits. Hardware qualification applies to the archived fixed-release source, not this new master-based branch.",
+  "formatting": "Apache header, Black 26.5.1, lint-only comments and docstring wrapping. Executable AST equivalence verified excluding docstrings/comments; no import reordering or algorithm edits. Hardware qualification applies to the archived fixed-release source, not this new master-based branch. Exception: matrix.py delegates mm to the 2026-11-05 tuned backend; its updated source is separately archived. See mm/REPORT.md.",
   "sources": [
     {
       "path": "src/flag_gems/runtime/backend/_hygon/experimental/under90/f01.py",
@@ -114,13 +114,13 @@
     },
     {
       "path": "src/flag_gems/runtime/backend/_hygon/experimental/matrix.py",
-      "origin": "top20/matrix-family/candidate-2.py",
-      "source_sha256": "9b08074b410fab0dc990c384f6fb9fff99f02499a8ca9d7ff37fafbc29d426ae",
+      "origin": "src/flag_gems/runtime/backend/_hygon/experimental/matrix.py",
+      "source_sha256": "7f855dc8c79eeff4bde0e901043e117b8a21f3aa3cf5fbc52b5b72b6d0f6503d",
       "family": "mm_bmm_addmm",
-      "status": "selected_in_fixed_release_24_of_33_device_targets",
-      "sha256": "40d4cbac663fd5520912b76b9789e99ae60618adffae4d028eef0a92e4b323ba",
-      "archived_source": "docs/hygon-optimization/history/sources/9b08074b410fab0dc990c384f6fb9fff99f02499a8ca9d7ff37fafbc29d426ae.py.txt",
-      "archive_origin_commit": "1ca582b4d17f935ba04706384da9a06d5a5bae6e"
+      "status": "mm_delegates_to_device_validated_backend_20261105_bmm_addmm_unchanged",
+      "sha256": "7f855dc8c79eeff4bde0e901043e117b8a21f3aa3cf5fbc52b5b72b6d0f6503d",
+      "archived_source": "docs/hygon-optimization/history/sources/7f855dc8c79eeff4bde0e901043e117b8a21f3aa3cf5fbc52b5b72b6d0f6503d.py.txt",
+      "archive_origin_commit": "working-tree-based-on-6d9ac5543fb2a543ec00a7770c8c583f1a9f1f29"
     },
     {
       "path": "src/flag_gems/runtime/backend/_hygon/experimental/index.py",
