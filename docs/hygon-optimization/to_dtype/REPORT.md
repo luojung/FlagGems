@@ -1,4 +1,57 @@
-# aten::to.dtype: performance acceptance under review
+# aten::to.dtype / _to_copy: current device acceptance
+
+## 2026-11-11: complete dtype scope and independent old-path comparisons
+
+The [current evidence and CPU verifier](recheck-20261111/README.md) accept all
+46 inputs from the two requested workbook sheets and 13 additional controls:
+56 device-work inputs reach DAS/new FG >=90%, with a minimum of 96.57%; three
+identity/empty inputs launch no work. Correctness, exact output layout and
+both providers' A/A drift <=5% pass. Only device kernels and copies are timed.
+
+The original ten dtype inputs pass independently on three physical cards.
+The final launch change affects six workbook inputs, all rechecked on each
+card with seven old/new/reference paths. Each card also passes the complete
+106-test numerical suite after the final change. The other 53 input/control
+routes are preserved exactly, with source restoration and metadata checks.
+
+The FP32-to-BF16 168200-element input is about 0.8%-1.4% faster than old public
+FG in the three final captures. The 37120-element input remains about
+0.3%-0.5% slower; no speedup is claimed for it. Both pass the DAS target.
+Routing-only and old-generic comparisons remain separate, and invalid old
+public/boxing output strides remain diagnostic failures. There is no claim
+that every new cast is faster than every previous path.
+
+This is dtype acceptance for reconstructed workbook metadata and added
+controls. It does not assert recovery of original model operands or close
+the separate MM review. PR #3 remains a draft for external review.
+
+## Historical 2026-11-10 workbook scope extension
+
+The [extended evidence and CPU verifier](extended-20261110/README.md) cover
+all 46 dtype/copy workbook rows and 13 additional controls: 56 device-work
+records pass correctness, both A/A checks and DAS/new >=90%; three records
+have no device work. The latest minimum is 96.57%. All 106 numerical tests
+pass. Original model operands have not been replayed, and the combined
+submission remains held by unresolved MM work. Historical measurements and
+failed or unstable captures are retained below and in the evidence archive.
+
+The two required tabs of `待优化设备耗时的算子1.xlsx` contain 10 `to.dtype`
+rows and 36 related `_to_copy` rows. All 10 `to.dtype` inputs match previous
+metadata records; the [36 new copy/cast metadata regressions](extended-cases-20261110.json)
+include the original owner and worksheet row. They cover FP32 -> BOOL,
+BF16 -> FP32, FP32 -> BF16 and INT64 -> FP32, including larger sizes.
+
+The new FP32 -> BOOL checks exposed incorrect values in the generic route.
+An explicit nonzero comparison and additional dense conversion paths
+are verified in the extended evidence above. The older evidence below describes its recorded
+source revision; it does not validate the expanded dense route. Correctness,
+DAS/new >= 0.90 and both A/A checks must pass before submission.
+
+<!-- current-submission-r4n15 -->
+Earlier known-scope review: [23 records, compact observations and independent verifier](correction-20261109/submission-r4n15/README.md).
+That combined submission was held by the separate original MM review.
+The additional workload rows pass reconstructed-input verification above; this does not assert original model replay.
+The historical review and separately recorded phases follow below.
 
 PR #3 is a draft. The previous blanket acceptance and claim that the new cast
 is uniformly faster are withdrawn. The following is user-supplied review data,
