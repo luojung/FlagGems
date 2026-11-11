@@ -39,7 +39,7 @@ if (
 for name, sha in data["source_sha256"].items():
     assert hashlib.sha256(canonical_bytes(repo / name)).hexdigest() == sha, name
 
-proof = json.loads((root / "source-route-proof.json").read_text())
+proof = json.loads((root / "source-route-proof.json").read_text(encoding="utf-8"))
 prefix = "src/flag_gems/runtime/backend/_hygon/ops/"
 for name in ["to.py", "to_kernels.py"]:
     baseline = root / "baseline" / (name + ".txt")

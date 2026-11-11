@@ -88,8 +88,10 @@ assert len(data["route_preservation"]["unchanged_controls"]) == 13
 assert all(c["numel"] < 32768 for c in data["route_preservation"]["unchanged_controls"])
 affected = {1711, 1713, 1718, 1719, 940018, 940034}
 assert set(data["route_preservation"]["affected_workbook_cases"]) == affected
-workbook_cases = json.loads((root.parent / "cases.json").read_text())
-workbook_cases += json.loads((root.parent / "extended-cases-20261110.json").read_text())
+workbook_cases = json.loads((root.parent / "cases.json").read_text(encoding="utf-8"))
+workbook_cases += json.loads(
+    (root.parent / "extended-cases-20261110.json").read_text(encoding="utf-8")
+)
 recomputed = set()
 for case in workbook_cases:
     if "row" in case:
