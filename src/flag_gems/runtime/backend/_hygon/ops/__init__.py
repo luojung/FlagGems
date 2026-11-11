@@ -189,6 +189,7 @@ from .special_shifted_chebyshev_polynomial_v import (
     special_shifted_chebyshev_polynomial_v,
 )
 from .split_with_sizes_copy import split_with_sizes_copy
+from .sum import sum_dim
 from .tile import tile
 from .topk_w8a16_fp8 import topk_w8a16_fp8
 from .triangular_solve import triangular_solve, triangular_solve_out
@@ -382,6 +383,7 @@ __all__ = [
     "special_shifted_chebyshev_polynomial_u",
     "special_shifted_chebyshev_polynomial_v",
     "split_with_sizes_copy",
+    "sum_dim",
     "SUPPORTED_FP8_DTYPE",
     "tile",
     "topk_w8a16_fp8",
