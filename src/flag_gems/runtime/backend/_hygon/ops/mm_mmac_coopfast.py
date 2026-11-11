@@ -33,7 +33,10 @@ def slot_asm(slot, total, tn, ki):
     tmp = total * 8 + ki * 2 * (total // tn + tn)
     areg = tmp + 2 * (slot // tn)
     breg = tmp + 2 * (total // tn) + 2 * (slot % tn)
-    return f"v_mmac_16x16x4_f64 v[{start}:{start+7}], v[{areg}:{areg+1}], v[{breg}:{breg+1}], v[{start}:{start+7}]"
+    return (
+        f"v_mmac_16x16x4_f64 v[{start}:{start + 7}], "
+        f"v[{areg}:{areg + 1}], v[{breg}:{breg + 1}], v[{start}:{start + 7}]"
+    )
 
 
 @triton.constexpr_function
@@ -43,7 +46,7 @@ def slot_constraints(slot, total, tn, ki):
     areg = tmp + 2 * (slot // tn)
     breg = tmp + 2 * (total // tn) + 2 * (slot % tn)
     return ",".join(
-        [f"={{v{start+i}}}" for i in range(8)]
+        [f"={{v{start + i}}}" for i in range(8)]
         + [f"{{v{reg}}}" for reg in (areg, areg + 1, breg, breg + 1)]
         + [str(i) for i in range(8)]
     )
@@ -213,34 +216,6 @@ def store_acc(
         tl.store(C + rr * N + cc, value, (rr < M) & (cc < N))
 
 
-@triton.constexpr_function
-def split_levels(n):
-    return n.bit_length() - 1
-
-
-@triton.constexpr_function
-def reverse_bits(i, n):
-    r = 0
-    for j in range(n):
-        r = (r << 1) | ((i >> j) & 1)
-    return r
-
-
-@triton.jit
-def split_parts(at, WW: tl.constexpr, TT: tl.constexpr, PP: tl.constexpr):
-    at = tl.reshape(at, (WW * 64, TT * PP))
-    parts = (at,)
-    for level in tl.static_range(split_levels(TT * PP)):
-        new = ()
-        for pi in tl.static_range(2**level):
-            even, odd = tl.split(
-                tl.reshape(parts[pi], (WW * 64, TT * PP // (2 ** (level + 1)), 2))
-            )
-            new += (even, odd)
-        parts = new
-    return parts
-
-
 @triton.jit
 def cooperative_load(
     A,
@@ -262,54 +237,24 @@ def cooperative_load(
     chunk: tl.constexpr,
     step,
 ):
-    WN: tl.constexpr = WARPS // WM
-    ax = tl.arange(0, WM * TM * 64 * PREFETCH)
-    aw = ax // (TM * 64 * PREFETCH)
-    ar = (ax // (4 * PREFETCH)) % (TM * 16)
-    ak = ax % (4 * PREFETCH)
-    rr = pm * (16 * TM * WM) + aw * 16 * TM + ar
-    kk = step * 4 * PREFETCH + ak
-    if M % (16 * TM * WM) == 0 and K % (4 * PREFETCH) == 0:
-        av = tl.load(A + rr * AM + kk * AK)
-    else:
-        av = tl.load(A + rr * AM + kk * AK, (rr < M) & (kk < K), 0)
-    av = tl.reshape(av, (1, WM, TM, 16, PREFETCH, 4))
-    av = tl.broadcast_to(av, (WN, WM, TM, 16, PREFETCH, 4))
-    av = tl.reshape(av, (WARPS, TM, 16, PREFETCH, 4))
-    av = tl.trans(av, (0, 4, 2, 1, 3))
-    ap = split_parts(av, WARPS, TM, PREFETCH)
-
-    bx = tl.arange(0, WN * TN * 64 * PREFETCH)
-    bw = bx // (TN * 64 * PREFETCH)
-    bj = (bx // (64 * PREFETCH)) % TN
-    bk = (bx // 16) % (4 * PREFETCH)
-    bc = bx % 16
-    cc = pn * (16 * TN * WN) + bw * 16 * TN + bj * 16 + bc
-    kk = step * 4 * PREFETCH + bk
-    if N % (16 * TN * WN) == 0 and K % (4 * PREFETCH) == 0:
-        bv = tl.load(B + kk * BK + cc * BN)
-    else:
-        bv = tl.load(B + kk * BK + cc * BN, (cc < N) & (kk < K), 0)
-    bv = tl.reshape(bv, (WN, 1, TN, PREFETCH, 4, 16))
-    bv = tl.broadcast_to(bv, (WN, WM, TN, PREFETCH, 4, 16))
-    bv = tl.reshape(bv, (WARPS, TN, PREFETCH, 64))
-    bv = tl.trans(bv, (0, 3, 1, 2))
-    bp = split_parts(bv, WARPS, TN, PREFETCH)
+    # MMAC consumes row/column lane % 16 and reduction lane // 16.
+    # Keep that mapping explicit across warp replication and FP64 bit packing.
+    x = tl.arange(0, WARPS * 64)
+    lane = x % 64
+    warp = x // 64
     aa = ()
     bb = ()
     for ki in tl.static_range(PREFETCH):
-        for ti in tl.static_range(TM):
-            aa += (
-                tl.reshape(
-                    ap[reverse_bits(ti * PREFETCH + ki, split_levels(TM * PREFETCH))],
-                    (WARPS * 64,),
-                ),
+        kk = step * 4 * PREFETCH + ki * 4 + lane // 16
+        for i in tl.static_range(TM):
+            rr = pm * 16 * TM * WM + (warp % WM) * 16 * TM + i * 16 + lane % 16
+            aa += (tl.load(A + rr * AM + kk * AK, (rr < M) & (kk < K), 0),)
+        for j in tl.static_range(TN):
+            cc = (
+                pn * 16 * TN * (WARPS // WM)
+                + (warp // WM) * 16 * TN
+                + j * 16
+                + lane % 16
             )
-        for tj in tl.static_range(TN):
-            bb += (
-                tl.reshape(
-                    bp[reverse_bits(tj * PREFETCH + ki, split_levels(TN * PREFETCH))],
-                    (WARPS * 64,),
-                ),
-            )
+            bb += (tl.load(B + kk * BK + cc * BN, (cc < N) & (kk < K), 0),)
     return aa, bb
