@@ -180,3 +180,9 @@ but stopped while installing its isolated environment because PyPI returned
 TLS SSLEOF errors for setuptools. It is recorded as blocked, not passed.
 The retained provider import order is intentional and checked against archived
 source ASTs; immutable history blobs are excluded from automatic whitespace fixes.
+
+
+## Linear forward measurements
+
+- [Initial retained K1 and BF16 work](linear-20261109/README.md).
+- [FP32 projection continuation and all109 performance/correctness accounting](linear-focused-20261109/README.md).

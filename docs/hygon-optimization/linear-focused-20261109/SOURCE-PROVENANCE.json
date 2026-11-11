@@ -1,0 +1,52 @@
+{
+  "operator": "aten::linear.default",
+  "hardware": "Hygon gfx936",
+  "new_route_scope": {
+    "dtype": "float32",
+    "M_K_N": [
+      [
+        60000,
+        512,
+        1024
+      ],
+      [
+        140000,
+        512,
+        512
+      ]
+    ],
+    "A_strides": [
+      "K",
+      1
+    ],
+    "B_strides": [
+      1,
+      "K"
+    ],
+    "storage_offsets": [
+      0,
+      0
+    ],
+    "existing_A_materialization": "preserved before new guard",
+    "TF32": false,
+    "launch": [
+      64,
+      64,
+      32,
+      1,
+      4
+    ]
+  },
+  "measured_mm": {
+    "path": "docs/hygon-optimization/linear-focused-20261109/tested-sources/mm.py.txt",
+    "sha256": "cd02b407b4f5457778e386286097b8f4ac2287b2072999e34c64586d4f87b920"
+  },
+  "production_mm": {
+    "path": "src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+    "canonical_LF_sha256": "52b95545f70566d87c45092f452a3f0008394b861725223c824699c2cf2c01ae"
+  },
+  "formatting_only_complete_AST_equal": true,
+  "new_BF16_change": false,
+  "baseline": "previous retained optimized version, no recrediting earlier K1/BF16 gains",
+  "validation": "GPU final full109 and fresh authorABBA reported in README; no independent promotion claim"
+}
