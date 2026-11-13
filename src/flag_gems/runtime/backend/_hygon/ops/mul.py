@@ -23,6 +23,7 @@ from flag_gems.ops.mul import _complex_output as _output
 from flag_gems.ops.mul import (
     _contiguous_configs,
     _dtype_name,
+    _is_accelerator_device,
     _mul,
     _mul_,
     _mul_contiguous_tile,
@@ -732,7 +733,36 @@ _REAL_LAUNCHERS = (
 )
 
 
+def _same_dense_bf16_layout(a, b):
+    if not (
+        isinstance(a, torch.Tensor)
+        and isinstance(b, torch.Tensor)
+        and a.dtype == b.dtype == torch.bfloat16
+        and _is_accelerator_device(a.device)
+        and a.device == b.device
+        and a.shape == b.shape
+        and a.stride() == b.stride()
+        and not a.is_contiguous()
+        and 65536 <= a.numel() <= 4194304
+    ):
+        return False
+    # A dense permutation visits each physical element once. Identical input
+    # and output layouts let the existing flat kernel traverse physical order.
+    expected = 1
+    for stride, size in sorted(zip(a.stride(), a.shape)):
+        if size <= 1:
+            continue
+        if stride != expected:
+            return False
+        expected *= size
+    return True
+
+
 def mul(A, B, *, out=None):
+    if out is None and _same_dense_bf16_layout(A, B):
+        output = torch.empty_like(A)
+        if output.stride() == A.stride():
+            return _launch_contiguous_tensor_tensor(A, B, output, A.dtype)
     return _mul(
         A,
         B,
