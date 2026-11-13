@@ -114,7 +114,13 @@ def sum_dim(inp, dim=None, keepdim=False, *, dtype=None):
         and inp.dtype in (torch.float32, torch.float64)
         and (dtype is None or dtype == inp.dtype)
         and inp.shape[-1] in (2, 3, 5, 7, 10, 13, 15, 32)
-        and inp.numel() // inp.shape[-1] >= (1024 if inp.shape[-1] == 2 else 8192)
+        and (
+            inp.numel() // inp.shape[-1] >= 8192
+            or (
+                inp.numel() // inp.shape[-1] >= 1024
+                and (inp.shape[-1] == 2 or (inp.shape[-1] == 3 and inp.is_contiguous()))
+            )
+        )
     ):
         logger.debug("GEMS_HYGON SUM_DIM SHORT_ROWS")
         n = inp.shape[-1]
@@ -125,7 +131,12 @@ def sum_dim(inp, dim=None, keepdim=False, *, dtype=None):
         out = torch.empty(shape, dtype=inp.dtype, device=inp.device)
         # Small row counts need more workgroups; larger inputs amortize launch
         # and scheduling overhead by reducing multiple rows in each workgroup.
-        if n == 3:
+        medium_three = n == 3 and m < 8192
+        if medium_three:
+            # One wave packs sixteen contiguous three-element rows. Keep the
+            # established launches for larger rows and strided fallbacks.
+            block_m = 16
+        elif n == 3:
             block_m = 256
         elif n == 32 and m < 65536:
             block_m = 16
@@ -141,7 +152,7 @@ def sum_dim(inp, dim=None, keepdim=False, *, dtype=None):
                 col_stride,
                 block_m,
                 triton.next_power_of_2(n),
-                num_warps=4,
+                num_warps=1 if medium_three else 4,
             )
         return out
     return general_sum_dim(inp, dim, keepdim, dtype=dtype)

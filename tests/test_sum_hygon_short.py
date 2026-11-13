@@ -177,3 +177,68 @@ def test_sum_hygon_trailing_pair(shape, dims, keepdim):
     expected = cpu.double().sum(dims, keepdim=keepdim).float()
     actual = flag_gems.sum_dim(cpu.to(flag_gems.device), dims, keepdim=keepdim).cpu()
     torch.testing.assert_close(actual, expected)
+
+
+@pytest.mark.parametrize("m", [1023, 1024, 1089, 1220, 2597, 8191, 8192])
+@pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
+@pytest.mark.parametrize("keepdim", [False, True])
+@pytest.mark.parametrize("rank", [2, 3])
+def test_sum_hygon_medium_three(m, dtype, keepdim, rank):
+    shape = (m, 3) if rank == 2 else (m, 1, 3)
+    stride = (3, 1) if rank == 2 else (3, 3, 1)
+    storage = torch.randn(
+        (m * 3 + 19,),
+        dtype=dtype,
+        generator=torch.Generator().manual_seed(20261113),
+    )
+    cpu = storage.as_strided(shape, stride, 7)
+    device_storage = storage.to(flag_gems.device)
+    inp = device_storage.as_strided(shape, stride, 7)
+    expected = cpu.double().sum(-1, keepdim=keepdim).to(dtype)
+    result = flag_gems.sum_dim(inp, [-1], keepdim=keepdim)
+    torch.testing.assert_close(result.cpu(), expected)
+    assert result.shape == expected.shape
+    assert result.stride() == expected.stride()
+    assert result.storage_offset() == expected.storage_offset()
+    assert not torch._C._is_alias_of(result, inp)
+    again = flag_gems.sum_dim(inp, [-1], keepdim=keepdim)
+    assert not torch._C._is_alias_of(result, again)
+    assert torch.equal(
+        device_storage.cpu().view(torch.uint8), storage.view(torch.uint8)
+    )
+
+
+@pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
+@pytest.mark.parametrize("keepdim", [False, True])
+@pytest.mark.parametrize("stride", [(7, 2), (1, 2597), (0, 1), (1, 0)])
+def test_sum_hygon_medium_three_strided_fallback(dtype, keepdim, stride):
+    shape = (2597, 3)
+    size = 5 + sum((n - 1) * s for n, s in zip(shape, stride)) + 1
+    storage = torch.randn(
+        (size,),
+        dtype=dtype,
+        generator=torch.Generator().manual_seed(20261114),
+    )
+    cpu = storage.as_strided(shape, stride, 5)
+    device_storage = storage.to(flag_gems.device)
+    inp = device_storage.as_strided(shape, stride, 5)
+    expected = cpu.double().sum(-1, keepdim=keepdim).to(dtype)
+    result = flag_gems.sum_dim(inp, [-1], keepdim=keepdim)
+    torch.testing.assert_close(result.cpu(), expected)
+    assert result.stride() == expected.stride()
+    assert not torch._C._is_alias_of(result, inp)
+    assert torch.equal(
+        device_storage.cpu().view(torch.uint8), storage.view(torch.uint8)
+    )
+
+
+@pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
+def test_sum_hygon_medium_three_nonfinite(dtype):
+    cpu = torch.ones((1024, 3), dtype=dtype)
+    cpu[0, 0] = float("nan")
+    cpu[1, 1] = float("inf")
+    cpu[2, 2] = -float("inf")
+    cpu[3, 0] = float("inf")
+    cpu[3, 1] = -float("inf")
+    result = flag_gems.sum_dim(cpu.to(flag_gems.device), [-1]).cpu()
+    torch.testing.assert_close(result, cpu.sum(-1), equal_nan=True)
