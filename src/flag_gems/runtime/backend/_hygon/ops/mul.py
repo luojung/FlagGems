@@ -733,6 +733,57 @@ _REAL_LAUNCHERS = (
 )
 
 
+@libentry()
+@triton.jit
+def mul_dense_bf16_tail_kernel(
+    x_ptr,
+    y_ptr,
+    output_ptr,
+    n_elements,
+    BLOCK_SIZE: tl.constexpr,
+):
+    block = tl.program_id(0)
+    offsets = block * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
+    # Only the final CTA needs element masks. Keep complete physical tiles
+    # unmasked so the compiler can retain vector BF16 loads and stores.
+    if block < n_elements // BLOCK_SIZE:
+        x = tl.load(x_ptr + offsets).to(tl.float32)
+        y = tl.load(y_ptr + offsets).to(tl.float32)
+        tl.store(output_ptr + offsets, x * y)
+    else:
+        mask = offsets < n_elements
+        x = tl.load(x_ptr + offsets, mask, other=0).to(tl.float32)
+        y = tl.load(y_ptr + offsets, mask, other=0).to(tl.float32)
+        tl.store(output_ptr + offsets, x * y, mask)
+
+
+def _launch_dense_bf16(a, b, output):
+    n = output.numel()
+    block, warps = _hygon_contiguous_config(n, a.dtype)
+    if (
+        n % block
+        and mul_contiguous_bf16_kernel.fn._run_mode == "normal"
+        and not flagtune_enabled("mul")
+    ):
+        guard = (
+            nullcontext()
+            if torch_device_fn.current_device() == output.device.index
+            else torch_device_fn.device(output.device)
+        )
+        with guard:
+            mul_dense_bf16_tail_kernel[(triton.cdiv(n, block),)](
+                a,
+                b,
+                output,
+                n,
+                BLOCK_SIZE=block,
+                num_warps=warps,
+                num_stages=1,
+            )
+        return output
+    return _launch_contiguous_tensor_tensor(a, b, output, a.dtype)
+
+
 def _same_dense_bf16_layout(a, b):
     if not (
         isinstance(a, torch.Tensor)
@@ -762,7 +813,7 @@ def mul(A, B, *, out=None):
     if out is None and _same_dense_bf16_layout(A, B):
         output = torch.empty_like(A)
         if output.stride() == A.stride():
-            return _launch_contiguous_tensor_tensor(A, B, output, A.dtype)
+            return _launch_dense_bf16(A, B, output)
     return _mul(
         A,
         B,

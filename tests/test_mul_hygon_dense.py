@@ -126,3 +126,39 @@ def test_mul_hygon_dense_nonfinite_and_same_object():
     actual = flag_gems.mul(device, device)
     torch.testing.assert_close(actual.cpu(), cpu * cpu, equal_nan=True)
     assert torch.equal(device.cpu().view(torch.int16), cpu.view(torch.int16))
+
+
+@pytest.mark.mul
+@pytest.mark.parametrize(
+    "shape,stride",
+    [((257, 257), (1, 257)), ((513, 129), (1, 513)), ((362, 5793), (1, 362))],
+)
+@pytest.mark.parametrize("offset", [0, 1, 7])
+def test_mul_hygon_dense_masked_tail(shape, stride, offset):
+    backing, args, moved, device = make_pair(shape, stride, offset, True)
+    expected = torch.ops.aten.mul.Tensor(*args)
+    actual = flag_gems.mul(*device)
+    torch.testing.assert_close(actual.cpu(), expected, rtol=0, atol=0)
+    assert actual.stride() == expected.stride()
+    assert actual.storage_offset() == expected.storage_offset()
+    assert not any(torch._C._is_alias_of(actual, t) for t in device)
+    for original, current in zip(backing, moved):
+        assert torch.equal(original.view(torch.uint8), current.cpu().view(torch.uint8))
+
+
+@pytest.mark.mul
+def test_mul_hygon_dense_tail_nonfinite():
+    backing, args, moved, device = make_pair((257, 257), (1, 257), 1, True)
+    for storage in backing:
+        storage[-270:-264] = torch.tensor(
+            [float("nan"), float("inf"), -float("inf"), 0.0, -0.0, 1.0],
+            dtype=torch.bfloat16,
+        )
+    moved[0].copy_(backing[0].to(flag_gems.device))
+    expected = args[0] * args[1]
+    actual = flag_gems.mul(*device).cpu()
+    torch.testing.assert_close(actual, expected, rtol=0, atol=0, equal_nan=True)
+    finite = ~torch.isnan(expected)
+    assert torch.equal(
+        actual.view(torch.int16)[finite], expected.view(torch.int16)[finite]
+    )
