@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-17",
+  "ssh_alias": "luojun850",
+  "run_id": "hygon-closeout-20261117",
+  "job_id": 1146777,
+  "job_state": "COMPLETED",
+  "job_exit": "0:0",
+  "test_scope": "Existing integration production source with PR7 regression tests",
+  "result": {
+    "tests": 36,
+    "failures": 0,
+    "errors": 0,
+    "time": "4.281",
+    "launch_exit": 0,
+    "provenance": {
+      "label": "baseline",
+      "torch": "2.10.0+cpu",
+      "torch_fl": "unknown",
+      "device": "flagos",
+      "vendor": "hygon",
+      "source": "/opt/flagos/live-FlagGems",
+      "source_files": {
+        "src/flag_gems/runtime/backend/_hygon/ops/mm.py": "a03b95be9fa78c2cb571161ed97d64a1169caf4dc2b5a3188df4ac76159f66e1",
+        "src/flag_gems/runtime/backend/_hygon/ops/addmm_kernel90.py": "e3da93b5cf7ea999073a4e40b87960483b62782f6c03d1b9227280f92f6fb381"
+      },
+      "providers": {
+        "mm": {
+          "file": "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "line": 228
+        },
+        "addmm": {
+          "file": "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/addmm_kernel90.py",
+          "line": 675
+        },
+        "addmm_out": {
+          "file": "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/addmm_kernel90.py",
+          "line": 683
+        }
+      },
+      "schemas": {
+        "mm": "aten::mm(Tensor self, Tensor mat2) -> Tensor",
+        "addmm": "aten::addmm(Tensor self, Tensor mat1, Tensor mat2, *, Scalar beta=1, Scalar alpha=1) -> Tensor"
+      },
+      "dispatch_keys": "DispatchKeySet(PrivateUse1, ADInplaceOrView, AutogradPrivateUse1, AutocastPrivateUse1)",
+      "device_name": "BW"
+    }
+  },
+  "limitations": [
+    "Numerical/layout regression validation, not DAS90 performance acceptance.",
+    "Direct FlagGems provider tests; not full public-model or full109-case validation.",
+    "Initial job1146730 retained as failed due to read-only pytest summary output; successful retry uses unchanged source and writable output."
+  ]
+}
