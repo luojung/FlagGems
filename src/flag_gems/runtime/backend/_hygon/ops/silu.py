@@ -26,7 +26,16 @@ logger = logging.getLogger(__name__)
 @triton.jit
 def silu_forward(x):
     x_fp32 = x.to(tl.float32)
-    y = tl.fdiv(x_fp32, (1.0 + tl.exp(-x_fp32)))
+    denominator = 1.0 + tl.exp(-x_fp32)
+    reciprocal = tl.inline_asm_elementwise(
+        "v_rcp_f32 $0, $1",
+        constraints="=v,v",
+        args=[denominator],
+        dtype=tl.float32,
+        is_pure=True,
+        pack=1,
+    )
+    y = x_fp32 * reciprocal
     return y
 
 
