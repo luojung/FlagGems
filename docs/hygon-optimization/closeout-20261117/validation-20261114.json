@@ -1,0 +1,199 @@
+{
+  "run_id": "std-rerun-mul-r3-20261114-1648",
+  "measured_at": "2026-11-14T08:47:43.802443+00:00",
+  "official_master": "7d14d8ffc94c1eb31c968b3fb9767210c84690f",
+  "candidate": "5ce293e6f",
+  "cases": 16,
+  "status_counts": {
+    "aa_unstable": 2,
+    "stable_below90": 14
+  },
+  "benchmark": {
+    "helper": "triton.testing.do_bench",
+    "warmup_ms": 1000,
+    "rep_ms": 100,
+    "return_mode": "median",
+    "new_samples_per_arm": 10,
+    "A/A_drift_stat": "block median"
+  },
+  "original_results_sha256": "94e4aa1a6b85607d038ff23417cbebbfab674712d023be554f8fac5a1d2ea919",
+  "case_results": [
+    {
+      "id": "mul-frozen-KlATY4-0450",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.2297970971104074,
+      "target90": false
+    },
+    {
+      "id": "mul-frozen-KlATY4-0457",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.22628667940684166,
+      "target90": false
+    },
+    {
+      "id": "scale-mul-a2dde02383caee69c90da9a1",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.15429025609313057,
+      "target90": false
+    },
+    {
+      "id": "scale-mul-cd5e4dab36b8ed4a119450e2",
+      "status": "aa_unstable",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": false,
+      "das_over_new": 0.1622167845343811,
+      "target90": false
+    },
+    {
+      "id": "scale-mul-08afdc6d843b68837a6f941d",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.20869124418113913,
+      "target90": false
+    },
+    {
+      "id": "scale-mul-cfbd974a5bab31c6489539c0",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.30132980563196726,
+      "target90": false
+    },
+    {
+      "id": "guard-below",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.15511542953703933,
+      "target90": false
+    },
+    {
+      "id": "guard-at",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.21292614509559044,
+      "target90": false
+    },
+    {
+      "id": "guard-upper",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.3532161136221549,
+      "target90": false
+    },
+    {
+      "id": "guard-above",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.11787847879935888,
+      "target90": false
+    },
+    {
+      "id": "guard-holes",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.1636999824273059,
+      "target90": false
+    },
+    {
+      "id": "guard-zero-stride",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.16158857130469656,
+      "target90": false
+    },
+    {
+      "id": "guard-fp32",
+      "status": "aa_unstable",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": false,
+      "das_over_new": 0.14895546418483616,
+      "target90": false
+    },
+    {
+      "id": "guard-fp64",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.15454291836577216,
+      "target90": false
+    },
+    {
+      "id": "guard-same-object",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.20528351617716475,
+      "target90": false
+    },
+    {
+      "id": "guard-broadcast",
+      "status": "stable_below90",
+      "correctness_classification": "all_pass",
+      "input_match": true,
+      "old_stable": true,
+      "new_stable": true,
+      "das_stable": true,
+      "das_over_new": 0.16732176946264926,
+      "target90": false
+    }
+  ],
+  "note": "Historical results of the exact original candidate; documentation-only closeout commit does not add hardware validation."
+}
