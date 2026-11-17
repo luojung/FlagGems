@@ -791,6 +791,16 @@ def _unique2(
     return_counts: bool = False,
 ):
     logger.debug("GEMS_HYGON SORT")
+    if in0.numel() == 0:
+        return (
+            torch.empty((0,), dtype=in0.dtype, device=in0.device),
+            torch.empty(
+                in0.shape if return_inverse else (0,),
+                dtype=torch.int64,
+                device=in0.device,
+            ),
+            torch.empty((0,), dtype=torch.int64, device=in0.device),
+        )
     if in0.numel() <= 8192:
         sorted_data, sorted_indices = torch.sort(in0.ravel())
         data_out, inverse_indices, counts = simple_unique_flat(
@@ -806,8 +816,11 @@ def _unique2(
         data_out, inverse_indices, counts = sorted_quick_unique_flat(
             sorted_data, return_counts
         )
-    return (
-        data_out,
-        inverse_indices if inverse_indices is None else inverse_indices.view_as(in0),
-        counts,
-    )
+    # Disabled ATen outputs must be defined tensors on the input device.
+    if not return_inverse:
+        inverse_indices = torch.empty((0,), dtype=torch.int64, device=in0.device)
+    elif inverse_indices is not None:
+        inverse_indices = inverse_indices.view_as(in0)
+    if not return_counts:
+        counts = torch.empty((0,), dtype=torch.int64, device=in0.device)
+    return data_out, inverse_indices, counts
