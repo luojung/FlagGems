@@ -673,6 +673,11 @@ def _launch(bias, a, b, out, alpha, beta):
 
 
 def addmm(bias, a, b, *, beta=1, alpha=1):
+    from .linear_projection import try_linear_affine
+
+    result = try_linear_affine(bias, a, b, beta=beta, alpha=alpha)
+    if result is not None:
+        return result
     if not _eligible(a, b):
         return _generic_addmm(bias, a, b, beta=beta, alpha=alpha)
     assert a.shape[1] == b.shape[0], "Incompatible dimensions"

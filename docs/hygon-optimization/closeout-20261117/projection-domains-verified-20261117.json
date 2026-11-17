@@ -1,0 +1,198 @@
+{
+  "job": 1146916,
+  "job_state": "COMPLETED",
+  "exit": "0:0",
+  "seven_domains_correct_both_arms": true,
+  "specialized_path_proven": true,
+  "rows": [
+    {
+      "id": "fp32-60000-512-1024",
+      "paired_inputs_equal": true,
+      "device_strides": [
+        [
+          512,
+          1
+        ],
+        [
+          1,
+          512
+        ]
+      ],
+      "baseline_correct": true,
+      "integration_correct": true,
+      "default_tolerances": {
+        "rtol": 1.3e-06,
+        "atol": 1e-05
+      },
+      "integration_max_abs_error": 2.1457672119140625e-06,
+      "outputs_bitwise_identical": true,
+      "projection_returned_tensor": true,
+      "integration_jit_kernels": [
+        "mm_fp32_static_kernel"
+      ]
+    },
+    {
+      "id": "fp32-140000-512-512",
+      "paired_inputs_equal": true,
+      "device_strides": [
+        [
+          512,
+          1
+        ],
+        [
+          1,
+          512
+        ]
+      ],
+      "baseline_correct": true,
+      "integration_correct": true,
+      "default_tolerances": {
+        "rtol": 1.3e-06,
+        "atol": 1e-05
+      },
+      "integration_max_abs_error": 2.2649765014648438e-06,
+      "outputs_bitwise_identical": true,
+      "projection_returned_tensor": true,
+      "integration_jit_kernels": [
+        "mm_fp32_static_kernel"
+      ]
+    },
+    {
+      "id": "bf16-145-10240-2560",
+      "paired_inputs_equal": true,
+      "device_strides": [
+        [
+          10240,
+          1
+        ],
+        [
+          1,
+          10240
+        ]
+      ],
+      "baseline_correct": true,
+      "integration_correct": true,
+      "default_tolerances": {
+        "rtol": 0.016,
+        "atol": 1e-05
+      },
+      "integration_max_abs_error": 0.015625,
+      "outputs_bitwise_identical": false,
+      "projection_returned_tensor": true,
+      "integration_jit_kernels": [
+        "mm_bf16_splitk_partial_kernel",
+        "mm_bf16_splitk_reduce_kernel"
+      ]
+    },
+    {
+      "id": "bf16-145-2048-2560",
+      "paired_inputs_equal": true,
+      "device_strides": [
+        [
+          2048,
+          1
+        ],
+        [
+          1,
+          2048
+        ]
+      ],
+      "baseline_correct": true,
+      "integration_correct": true,
+      "default_tolerances": {
+        "rtol": 0.016,
+        "atol": 1e-05
+      },
+      "integration_max_abs_error": 0.0078125,
+      "outputs_bitwise_identical": true,
+      "projection_returned_tensor": true,
+      "integration_jit_kernels": [
+        "mm_bf16_staticall_kernel"
+      ]
+    },
+    {
+      "id": "bf16-145-2560-1024",
+      "paired_inputs_equal": true,
+      "device_strides": [
+        [
+          2560,
+          1
+        ],
+        [
+          1,
+          2560
+        ]
+      ],
+      "baseline_correct": true,
+      "integration_correct": true,
+      "default_tolerances": {
+        "rtol": 0.016,
+        "atol": 1e-05
+      },
+      "integration_max_abs_error": 0.00390625,
+      "outputs_bitwise_identical": true,
+      "projection_returned_tensor": true,
+      "integration_jit_kernels": [
+        "mm_bf16_staticmasked_kernel"
+      ]
+    },
+    {
+      "id": "bf16-145-2560-10240",
+      "paired_inputs_equal": true,
+      "device_strides": [
+        [
+          2560,
+          1
+        ],
+        [
+          1,
+          2560
+        ]
+      ],
+      "baseline_correct": true,
+      "integration_correct": true,
+      "default_tolerances": {
+        "rtol": 0.016,
+        "atol": 1e-05
+      },
+      "integration_max_abs_error": 0.015625,
+      "outputs_bitwise_identical": true,
+      "projection_returned_tensor": true,
+      "integration_jit_kernels": [
+        "mm_bf16_staticmasked_kernel"
+      ]
+    },
+    {
+      "id": "bf16-145-2560-2048",
+      "paired_inputs_equal": true,
+      "device_strides": [
+        [
+          2560,
+          1
+        ],
+        [
+          1,
+          2560
+        ]
+      ],
+      "baseline_correct": true,
+      "integration_correct": true,
+      "default_tolerances": {
+        "rtol": 0.016,
+        "atol": 1e-05
+      },
+      "integration_max_abs_error": 0.0078125,
+      "outputs_bitwise_identical": true,
+      "projection_returned_tensor": true,
+      "integration_jit_kernels": [
+        "mm_bf16_staticall_kernel"
+      ]
+    }
+  ],
+  "performance_tested": false,
+  "evidence_kind": "Python/JIT launch witnesses plus synchronized hardware output checks, not a GPU producer-linked profiler trace",
+  "previous_run": {
+    "job": 1146841,
+    "qualification": "Numerically correct but specialized coverage invalid: generic fallback witnessed due to original input construction."
+  }
+}

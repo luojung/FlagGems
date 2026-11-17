@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "torch",
+    "Version": "2.10.0+cpu"
+  },
+  {
+    "Name": "torch_fl",
+    "Version": "2.10.0+dtk2604.gfae4e8c5.dev20261103"
+  },
+  {
+    "Name": "flagtree",
+    "Version": "0.7.0+hcu3.6"
+  }
+]

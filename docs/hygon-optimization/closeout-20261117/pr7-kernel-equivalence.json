@@ -1,0 +1,15 @@
+{
+  "source": "19d8acfb98210fe410161ec320b6c9782050af0c",
+  "pr7_head": "b3244d9d39c931fd2321f2661707361c390959df",
+  "normalized_kernel_ast_equal": {
+    "_precise_vector": true,
+    "_precise_vector_finish": true
+  },
+  "specialization": "Existing PRECISE=True call; remove final PRECISE formal and evaluate dtype conditional. No other AST normalization.",
+  "launch_domain": "On PR7 finite valid F32 vector domain K>=4096, max(M,N)<=512: RK=4096, BO=1 if M==1 else4, parts=ceil(K/4096), FP64 partials, warps8/4 and fusion-disabled match.",
+  "wrapper_differences": [
+    "PR7 alpha=0 delegates to generic; integrated path need not do so.",
+    "Export/eligibility/shape and bias guards differ; equivalence claim is kernel and finite regression scope, not complete error/alias/stream semantics."
+  ],
+  "decision": "Retain current production kernels and bring PR7 missing regression tests; do not register a second overlapping addmm provider."
+}

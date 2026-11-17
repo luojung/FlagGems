@@ -1,0 +1,302 @@
+{
+  "job": 1146841,
+  "job_state": "COMPLETED",
+  "exit": "0:0",
+  "seven_domains_correct_both_arms": true,
+  "rows": [
+    {
+      "id": "fp32-60000-512-1024",
+      "paired_inputs_equal": true,
+      "baseline_correct": true,
+      "integration_correct": true,
+      "outputs_bitwise_identical": true,
+      "integration_witnesses": [
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/linear_projection.py",
+          "<module>"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/linear_projection.py",
+          "try_linear_projection"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "<lambda>"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "_mm_default"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "get_higher_dtype"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "mm"
+        ],
+        [
+          "jit:/opt/flagos/live-FlagGems/src/flag_gems/utils/libentry.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/torch_fl/flagos/__init__.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/triton/runtime/jit.py",
+          "mm_kernel"
+        ]
+      ]
+    },
+    {
+      "id": "fp32-140000-512-512",
+      "paired_inputs_equal": true,
+      "baseline_correct": true,
+      "integration_correct": true,
+      "outputs_bitwise_identical": true,
+      "integration_witnesses": [
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/linear_projection.py",
+          "try_linear_projection"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "<lambda>"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "_mm_default"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "get_higher_dtype"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "mm"
+        ],
+        [
+          "jit:/opt/flagos/live-FlagGems/src/flag_gems/utils/libentry.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/torch_fl/flagos/__init__.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/triton/runtime/jit.py",
+          "mm_kernel"
+        ]
+      ]
+    },
+    {
+      "id": "bf16-145-10240-2560",
+      "paired_inputs_equal": true,
+      "baseline_correct": true,
+      "integration_correct": true,
+      "outputs_bitwise_identical": true,
+      "integration_witnesses": [
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/linear_projection.py",
+          "try_linear_projection"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "<lambda>"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "_mm_default"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "get_higher_dtype"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "mm"
+        ],
+        [
+          "jit:/opt/flagos/live-FlagGems/src/flag_gems/utils/libentry.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/torch_fl/flagos/__init__.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/triton/runtime/jit.py",
+          "mm_kernel"
+        ]
+      ]
+    },
+    {
+      "id": "bf16-145-2048-2560",
+      "paired_inputs_equal": true,
+      "baseline_correct": true,
+      "integration_correct": true,
+      "outputs_bitwise_identical": true,
+      "integration_witnesses": [
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/linear_projection.py",
+          "try_linear_projection"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "<lambda>"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "_mm_default"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "get_higher_dtype"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "mm"
+        ],
+        [
+          "jit:/opt/flagos/live-FlagGems/src/flag_gems/utils/libentry.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/torch_fl/flagos/__init__.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/triton/runtime/jit.py",
+          "mm_kernel"
+        ]
+      ]
+    },
+    {
+      "id": "bf16-145-2560-1024",
+      "paired_inputs_equal": true,
+      "baseline_correct": true,
+      "integration_correct": true,
+      "outputs_bitwise_identical": true,
+      "integration_witnesses": [
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/linear_projection.py",
+          "try_linear_projection"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "<lambda>"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "_mm_default"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "get_higher_dtype"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "mm"
+        ],
+        [
+          "jit:/opt/flagos/live-FlagGems/src/flag_gems/utils/libentry.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/torch_fl/flagos/__init__.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/triton/runtime/jit.py",
+          "mm_kernel"
+        ]
+      ]
+    },
+    {
+      "id": "bf16-145-2560-10240",
+      "paired_inputs_equal": true,
+      "baseline_correct": true,
+      "integration_correct": true,
+      "outputs_bitwise_identical": true,
+      "integration_witnesses": [
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/linear_projection.py",
+          "try_linear_projection"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "<lambda>"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "_mm_default"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "get_higher_dtype"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "mm"
+        ],
+        [
+          "jit:/opt/flagos/live-FlagGems/src/flag_gems/utils/libentry.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/torch_fl/flagos/__init__.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/triton/runtime/jit.py",
+          "mm_kernel"
+        ]
+      ]
+    },
+    {
+      "id": "bf16-145-2560-2048",
+      "paired_inputs_equal": true,
+      "baseline_correct": true,
+      "integration_correct": true,
+      "outputs_bitwise_identical": true,
+      "integration_witnesses": [
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/linear_projection.py",
+          "try_linear_projection"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "<lambda>"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "_mm_default"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "get_higher_dtype"
+        ],
+        [
+          "/opt/flagos/live-FlagGems/src/flag_gems/runtime/backend/_hygon/ops/mm.py",
+          "mm"
+        ],
+        [
+          "jit:/opt/flagos/live-FlagGems/src/flag_gems/utils/libentry.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/torch_fl/flagos/__init__.py",
+          "mm_kernel"
+        ],
+        [
+          "jit:/opt/flagos/python/lib/python3.10/site-packages/triton/runtime/jit.py",
+          "mm_kernel"
+        ]
+      ]
+    }
+  ],
+  "performance_tested": false,
+  "specialized_path_proven": false,
+  "coverage_correction": "Device transfer changed transpose strides; runtime witnesses show generic mm_kernel in all7. Numerical checks stand; specialized coverage invalid. Corrected backing transfer and device view in subsequent run."
+}

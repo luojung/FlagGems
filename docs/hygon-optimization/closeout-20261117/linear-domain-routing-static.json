@@ -1,0 +1,68 @@
+{
+  "evidence_type": "static selector evaluation with metadata stand-ins, not hardware witness",
+  "rows": [
+    {
+      "dtype": "torch.float32",
+      "M": 60000,
+      "K": 512,
+      "N": 1024,
+      "selected_in_existing_config": false,
+      "existing_kind": null,
+      "new_hook_reachable": true
+    },
+    {
+      "dtype": "torch.float32",
+      "M": 140000,
+      "K": 512,
+      "N": 512,
+      "selected_in_existing_config": false,
+      "existing_kind": null,
+      "new_hook_reachable": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "M": 145,
+      "K": 10240,
+      "N": 2560,
+      "selected_in_existing_config": false,
+      "existing_kind": null,
+      "new_hook_reachable": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "M": 145,
+      "K": 2048,
+      "N": 2560,
+      "selected_in_existing_config": false,
+      "existing_kind": null,
+      "new_hook_reachable": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "M": 145,
+      "K": 2560,
+      "N": 1024,
+      "selected_in_existing_config": false,
+      "existing_kind": null,
+      "new_hook_reachable": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "M": 145,
+      "K": 2560,
+      "N": 10240,
+      "selected_in_existing_config": false,
+      "existing_kind": null,
+      "new_hook_reachable": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "M": 145,
+      "K": 2560,
+      "N": 2048,
+      "selected_in_existing_config": false,
+      "existing_kind": null,
+      "new_hook_reachable": true
+    }
+  ]
+}

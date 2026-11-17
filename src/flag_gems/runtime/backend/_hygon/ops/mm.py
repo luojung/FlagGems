@@ -253,6 +253,11 @@ def mm(a, b):
 
     cfg = select_config(a, b)
     if cfg is None:
+        from .linear_projection import try_linear_projection
+
+        projection = try_linear_projection(a, b)
+        if projection is not None:
+            return projection
         return _mm_default(a, b)
     c = torch.empty((m, n), device=a.device, dtype=a.dtype)
     kind = cfg["kind"]
