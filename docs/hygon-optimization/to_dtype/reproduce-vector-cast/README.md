@@ -18,8 +18,10 @@ scratch storage. The runner checks that the baseline's `src` tree is
 export DEV=/work1/share/scnethpc2601/flagos-dev/20261103-hygon-optimization
 export DTK_ROOT=/public/software/compiler/dtk-26.04
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/dtype-repro.XXXXXXXX")
-git clone --filter=blob:none --no-checkout https://github.com/luojung/FlagGems.git "$scratch/base"
-git -C "$scratch/base" checkout --detach 2862d83d0d8cd7d599f2059131309e6db554744d
+git init "$scratch/base"
+git -C "$scratch/base" fetch --depth=1 https://github.com/luojung/FlagGems.git \
+    2862d83d0d8cd7d599f2059131309e6db554744d
+git -C "$scratch/base" checkout --detach FETCH_HEAD
 export FLAGOS_DEV_CACHE="$scratch/cache"
 bash docs/hygon-optimization/to_dtype/reproduce-vector-cast/run.sh \
     "$scratch/base" "$scratch/results" 0
@@ -28,8 +30,9 @@ bash docs/hygon-optimization/to_dtype/reproduce-vector-cast/run.sh \
 The last argument selects one physical GPU. Use a fresh output directory for
 each run. The script builds the supplied HIP source, runs the model and scaling
 cases serially, and writes `results.csv`, per-provider logs and JSON summaries,
-runtime fingerprints, and `profiles/{model,scale}.db`. The trace databases can
-be large. `cases.json` records the Excel row, seed, dtype, shape, stride, and
+runtime fingerprints, and `profiles/{model,scale}.db`. The full run used about
+5.1 GiB of scratch space for outputs, excluding the image and caches.
+`cases.json` records the Excel row, seed, dtype, shape, stride, and
 storage offset for each input and makes the workbook unnecessary for reruns.
 For a short check, prefix the last command with `MODEL_ROWS=775 SCALE_ROWS=1080`.
 
