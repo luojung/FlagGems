@@ -222,7 +222,7 @@ nvidia-cuda128 = [
 ]
 
 nvidia-cuda133 = [
-    "flagcx==0.14.0rc2.post2+cuda13.3",
+    "flagcx==0.14.1+cuda13.3",
     "torch==2.11.0+cu130",
     "torchaudio==2.11.0+cu130",
     "torchvision==0.26.0+cu130",
@@ -320,6 +320,8 @@ flaggems-flagtune-compare = "flag_gems.flagtune.offline.cli.compare:main"
 "flaggems_benchmark" = ["core_shapes.yaml"]
 
 "flag_gems" = ["backends.yaml"]
+"flag_gems.runtime.backend._hygon" = ["attention_state_hip.cpp", "dtype_cast_hip.cpp"]
+"flag_gems.runtime.backend._hygon.experimental" = ["SOURCES.json"]
 "flag_gems.runtime" = ["*/**/*.yaml"]
 "flag_gems.runtime.backend._metax" = ["stft_fft_shim.cpp"]
 "flag_gems.flagtune.inference" = ["manifest.json"]

@@ -54,8 +54,10 @@ from ._thnn_fused_lstm_cell import _thnn_fused_lstm_cell
 from .adaptive_avg_pool2d_backward import adaptive_avg_pool2d_backward
 from .adaptive_max_pool2d_backward import adaptive_max_pool2d_backward
 from .adaptive_max_pool3d_backward import adaptive_max_pool3d_backward
-from .addmm import addmm, addmm_dtype, addmm_dtype_out, addmm_out
+from .add import add
+from .addmm import addmm_dtype, addmm_dtype_out
 from .addmm_ import addmm_
+from .addmm_kernel90 import addmm, addmm_out
 from .addmv_ import addmv_
 from .addr import addr
 from .any import any, any_dim, any_dims
@@ -76,9 +78,11 @@ from .baddbmm_ import baddbmm_
 from .beam_search_score import beam_search_score
 from .binary_cross_entropy_backward import binary_cross_entropy_backward
 from .block_diag import block_diag
-from .bmm import bmm, bmm_out
+from .bmm_specialized import bmm, bmm_out
 from .bmm_w8a8 import bmm_w8a8
 from .cholesky_inverse import cholesky_inverse
+from .cholesky_solve import cholesky_solve, cholesky_solve_out
+from .clone import clone
 from .conj_physical import conj_physical
 from .conv2d import conv2d
 from .conv_depthwise2d import conv_depthwise2d
@@ -118,6 +122,7 @@ from .fill import (
     fill_tensor_,
     fill_tensor_out,
 )
+from .flash_attention_backward import flash_attention_backward
 from .float_power_ import (
     float_power_scalar_tensor,
     float_power_scalar_tensor_out,
@@ -128,6 +133,7 @@ from .float_power_ import (
     float_power_tensor_tensor_,
     float_power_tensor_tensor_out,
 )
+from .floor import floor
 from .fmod_scalar import fmod_scalar
 from .fused_moving_avg_obs_fq_helper import fused_moving_avg_obs_fq_helper
 from .gcd_ import gcd_
@@ -139,6 +145,7 @@ from .hardsigmoid_backward import hardsigmoid_backward
 from .hash_tensor import hash_tensor
 from .histc import histc
 from .igamma import igamma
+from .index import index
 from .index_add import index_add, index_add_
 from .index_copy_ import index_copy, index_copy_
 from .index_reduce_out import index_reduce_out
@@ -163,8 +170,10 @@ from .linalg_solve_triangular import (
 from .linear import linear
 from .log_normal_ import log_normal_
 from .lstm import lstm
+from .masked_fill import masked_fill
 from .masked_scale import masked_scale
 from .masked_scatter_backward import masked_scatter_backward
+from .masked_select import masked_select
 from .matmul_bf16 import matmul_bf16
 from .matmul_bias_activation import matmul_bias_activation
 from .matmul_int8 import matmul_int8
@@ -183,9 +192,13 @@ from .mul import mul, mul_
 from .multiply_ import multiply_
 from .mv import mv
 from .mvlgamma import mvlgamma
+from .nan_to_num import nan_to_num
 from .nanmedian import nanmedian, nanmedian_dim, nanmedian_dim_values, nanmedian_out
 from .nansum import nansum, nansum_out
+from .native_batch_norm import native_batch_norm
+from .neg import neg
 from .nll_loss_backward import heur_block_n, nll_loss_backward
+from .nonzero import nonzero
 from .nonzero_numpy import nonzero_numpy
 from .norm_scalaropt_dim import norm_scalaropt_dim
 from .nuclear_norm import nuclear_norm
@@ -211,7 +224,9 @@ from .replication_pad2d_backward import (
     replication_pad2d_backward_grad_input,
 )
 from .replication_pad3d_backward import replication_pad3d_backward
+from .rms_norm_w8a16_fp8 import rms_norm_w8a16_fp8
 from .rrelu_with_noise import rrelu_with_noise, rrelu_with_noise_
+from .rsqrt import rsqrt
 from .scalar_tensor import scalar_tensor
 from .scatter import scatter, scatter_
 from .scatter_add import scatter_add
@@ -253,11 +268,13 @@ from .special_shifted_chebyshev_polynomial_v import (
     special_shifted_chebyshev_polynomial_v,
 )
 from .split_with_sizes_copy import split_with_sizes_copy
+from .sum import sum_dim
 from .thnn_fused_gru_cell_backward import (
     _thnn_fused_gru_cell_backward,
     _thnn_fused_gru_cell_backward_out,
 )
 from .tile import tile
+from .to import to_copy
 from .topk_w8a16_fp8 import topk_w8a16_fp8
 from .triangular_solve import triangular_solve, triangular_solve_out
 from .unique import _unique2
@@ -319,6 +336,7 @@ __all__ = [
     "adaptive_avg_pool2d_backward",
     "adaptive_max_pool2d_backward",
     "adaptive_max_pool3d_backward",
+    "add",
     "addmm",
     "addmm_",
     "addmm_dtype",
@@ -343,6 +361,9 @@ __all__ = [
     "bmm_out",
     "bmm_w8a8",
     "cholesky_inverse",
+    "cholesky_solve",
+    "cholesky_solve_out",
+    "clone",
     "conj_physical",
     "conv2d",
     "conv_depthwise2d",
@@ -367,6 +388,7 @@ __all__ = [
     "fill_tensor",
     "fill_tensor_",
     "fill_tensor_out",
+    "flash_attention_backward",
     "flash_attention_forward",
     "flash_attn_varlen_func",
     "float_power_scalar_tensor",
@@ -377,6 +399,7 @@ __all__ = [
     "float_power_tensor_tensor",
     "float_power_tensor_tensor_",
     "float_power_tensor_tensor_out",
+    "floor",
     "floor_divide",
     "floor_divide_",
     "fmod_scalar",
@@ -393,6 +416,7 @@ __all__ = [
     "heur_block_n",
     "histc",
     "igamma",
+    "index",
     "index_add",
     "index_add_",
     "index_copy",
@@ -422,8 +446,10 @@ __all__ = [
     "linear",
     "log_normal_",
     "lstm",
+    "masked_fill",
     "masked_scale",
     "masked_scatter_backward",
+    "masked_select",
     "matmul_bf16",
     "matmul_bias_activation",
     "matmul_int8",
@@ -442,14 +468,18 @@ __all__ = [
     "multiply_",
     "mv",
     "mvlgamma",
+    "nan_to_num",
     "nanmedian",
     "nanmedian_dim",
     "nanmedian_dim_values",
     "nanmedian_out",
     "nansum",
     "nansum_out",
+    "native_batch_norm",
     "native_layer_norm",
+    "neg",
     "nll_loss_backward",
+    "nonzero",
     "nonzero_numpy",
     "norm_scalaropt_dim",
     "nuclear_norm",
@@ -475,8 +505,10 @@ __all__ = [
     "replication_pad2d_backward",
     "replication_pad2d_backward_grad_input",
     "replication_pad3d_backward",
+    "rms_norm_w8a16_fp8",
     "rrelu_with_noise",
     "rrelu_with_noise_",
+    "rsqrt",
     "scalar_tensor",
     "scaled_dot_product_attention",
     "scaled_dot_product_attention_backward",
@@ -518,8 +550,10 @@ __all__ = [
     "special_shifted_chebyshev_polynomial_u",
     "special_shifted_chebyshev_polynomial_v",
     "split_with_sizes_copy",
+    "sum_dim",
     "SUPPORTED_FP8_DTYPE",
     "tile",
+    "to_copy",
     "topk_w8a16_fp8",
     "triangular_solve",
     "triangular_solve_out",

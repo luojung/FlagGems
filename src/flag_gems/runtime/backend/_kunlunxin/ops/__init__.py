@@ -20,6 +20,7 @@ from ._amp_foreach_non_finite_check_and_unscale_ import (
 )
 from ._batch_norm_impl_index import batch_norm_impl_index as _batch_norm_impl_index
 from ._batch_norm_no_update import _batch_norm_no_update
+from ._batch_norm_with_update_functional import _batch_norm_with_update_functional
 from ._cholesky_solve_helper import _cholesky_solve_helper
 from ._conj import _conj  # noqa: F401
 from ._ctc_loss import _ctc_loss, _ctc_loss_out
@@ -833,18 +834,24 @@ from .resolve_conj import resolve_conj
 from .resolve_neg import resolve_neg
 from .rms_norm import rms_norm, rms_norm_backward, rms_norm_forward
 from .rnn_relu import rnn_relu
+from .rnn_relu_cell import rnn_relu_cell  # noqa: F401
+from .rnn_tanh_cell import rnn_tanh_cell  # noqa: F401
 from .roll import roll
 from .rot90 import rot90
 from .round import round, round_, round_out
 from .row_indices_copy import row_indices_copy, row_indices_copy_out
 from .row_stack import row_stack  # noqa: F401
+from .rrelu_ import rrelu_  # noqa: F401
+from .rrelu_with_noise import rrelu_with_noise, rrelu_with_noise_  # noqa: F401
 from .rrelu_with_noise_backward import rrelu_with_noise_backward
 from .rsqrt import rsqrt, rsqrt_
 from .rsub import rsub, rsub_scalar, rsub_tensor
 from .safe_softmax import _safe_softmax
 from .scalar_tensor import scalar_tensor
 from .scaled_grouped_mm import scaled_grouped_mm
-from .scaled_modified_bessel_k0 import special_scaled_modified_bessel_k0
+from .scaled_modified_bessel_k0 import (
+    special_scaled_modified_bessel_k0 as _scaled_bessel_k0_fn,
+)
 from .scaled_softmax import scaled_softmax_backward, scaled_softmax_forward
 from .scatter import scatter, scatter_
 from .scatter_add_ import scatter_add, scatter_add_
@@ -1006,7 +1013,7 @@ from .triu_indices import triu_indices  # noqa: F401
 from .trunc import trunc, trunc_
 from .unbind_copy import unbind_copy  # noqa: F401
 from .unfold_copy import unfold_copy
-from .uniform import uniform_
+from .uniform import uniform_  # noqa: F401
 from .unique import _unique2
 from .unique_consecutive import unique_consecutive
 from .unique_dim import unique_dim
@@ -1062,6 +1069,10 @@ from .zero import zero, zero_, zero_out
 from .zeros import zeros
 from .zeros_like import zeros_like
 
+# Importing from the submodule above rebinds this name to the module; rebind
+# the function so the vendor override is registered.
+special_scaled_modified_bessel_k0 = _scaled_bessel_k0_fn
+
 __all__ = [
     "__iand___scalar",
     "__iand___tensor",
@@ -1076,6 +1087,7 @@ __all__ = [
     "_assert_async",
     "_batch_norm_impl_index",
     "_batch_norm_no_update",
+    "_batch_norm_with_update_functional",
     "_cdist_backward",
     "_cholesky_solve_helper",
     "_chunk_cat",
@@ -1891,6 +1903,8 @@ __all__ = [
     "rms_norm_backward",
     "rms_norm_forward",
     "rnn_relu",
+    "rnn_relu_cell",
+    "rnn_tanh_cell",
     "roll",
     "rot90",
     "round",
@@ -1899,6 +1913,9 @@ __all__ = [
     "row_indices_copy",
     "row_indices_copy_out",
     "row_stack",
+    "rrelu_",
+    "rrelu_with_noise",
+    "rrelu_with_noise_",
     "rrelu_with_noise_backward",
     "rsqrt",
     "rsqrt_",
