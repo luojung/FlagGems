@@ -82,6 +82,16 @@ _FLAGOS_COO_ADDMM = (
     vendor_name == "hygon" and torch._C._get_privateuse1_backend_name() == "flagos"
 )
 
+_SPGEMM_DISPATCH_KEYS = (SPARSE_DISPATCH_KEY,)
+# Torch-FL uses a renamed PrivateUse1 backend even when its CUDA alias is
+# already available and the Hygon device probe reports "cuda".
+if (
+    vendor_name == "hygon"
+    and torch._C._get_privateuse1_backend_name() == "flagos"
+    and SPARSE_DISPATCH_KEY != "SparsePrivateUse1"
+):
+    _SPGEMM_DISPATCH_KEYS += ("SparsePrivateUse1",)
+
 
 def torch_ge(v):
     return _parse_version(torch.__version__) >= _parse_version(v)
@@ -849,13 +859,13 @@ _FULL_CONFIG = (
         "_sparse_sparse_matmul",
         _sparse_sparse_matmul,
         None,
-        (SPARSE_DISPATCH_KEY,),
+        _SPGEMM_DISPATCH_KEYS,
     ),
     (
         "_sparse_sparse_matmul.out",
         _sparse_sparse_matmul_out,
         None,
-        (SPARSE_DISPATCH_KEY,),
+        _SPGEMM_DISPATCH_KEYS,
     ),
     (
         "_sparse_sum",
